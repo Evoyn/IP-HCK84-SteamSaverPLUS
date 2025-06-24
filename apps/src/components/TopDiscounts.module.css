@@ -1,0 +1,475 @@
+.topDiscounts {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  /* background: #0a0a0b; */
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.titleChevron {
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+}
+
+.title:hover .titleChevron {
+  color: #00ced1;
+  transform: translateX(4px);
+}
+
+/* Cards Wrapper */
+.cardsWrapper {
+  position: relative;
+}
+
+/* Navigation Buttons */
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-out;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.navButton:hover:not(.disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.navButton:active:not(.disabled) {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.navButton.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.navLeft {
+  left: -20px;
+}
+
+.navRight {
+  right: -20px;
+}
+
+/* Scroll Container */
+.scrollContainer {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
+  padding: 8px 0;
+}
+
+.scrollContainer::-webkit-scrollbar {
+  display: none;
+}
+
+/* Game Card */
+.gameCard {
+  flex-shrink: 0;
+  width: 250px;
+  height: 360px; /* Increased from 320px to give more room */
+  background: #1a1a1b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  scroll-snap-align: start;
+  animation: cardFadeIn 0.6s ease-out forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes cardFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gameCard:hover {
+  transform: scale(1.02) translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 206, 209, 0.3);
+}
+
+/* Image Container */
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 240px; /* Reduced from 260px to give more room to content */
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.gameImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.2s ease-out;
+  opacity: 0;
+}
+
+.gameImage.loaded {
+  opacity: 1;
+}
+
+.gameCard:hover .gameImage {
+  filter: brightness(1.1);
+  transform: scale(1.05);
+}
+
+/* Vignette Overlay */
+.vignetteOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(0, 0, 0, 0.1) 70%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  pointer-events: none;
+}
+
+/* Discount Badge */
+.discountBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(
+    135deg,
+    #00ced1,
+    #4169e1
+  ); /* Gradient background */
+  color: white;
+  padding: 6px 12px; /* Increased padding */
+  border-radius: 6px; /* More rounded */
+  font-size: 14px; /* Larger font */
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 206, 209, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Content Area */
+.contentArea {
+  height: auto; /* Changed from fixed 60px to auto */
+  min-height: 120px; /* Ensure minimum height */
+  padding: 16px; /* Increased padding */
+  background: linear-gradient(
+    to bottom,
+    #1a1a1b,
+    #141415
+  ); /* Gradient background */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px; /* Add gap between elements */
+}
+
+.category {
+  font-size: 11px; /* Slightly smaller */
+  color: #00ced1; /* Changed to cyan for better visibility */
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.gameTitle {
+  font-size: 16px; /* Increased from 14px */
+  font-weight: 600; /* Increased weight */
+  color: white;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Allow 2 lines instead of 1 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Price Section */
+.priceSection {
+  margin-top: auto;
+  padding-top: 8px; /* Add some spacing */
+}
+
+.freePrice {
+  font-size: 18px; /* Larger */
+  font-weight: 700;
+  color: #00ced1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.regularPrice {
+  font-size: 18px; /* Larger */
+  font-weight: 700;
+  color: white;
+}
+
+.discountedPrice {
+  display: flex;
+  align-items: baseline; /* Changed from column to row layout */
+  gap: 8px;
+}
+
+.originalPrice {
+  font-size: 14px; /* Larger */
+  color: rgba(255, 255, 255, 0.4); /* Slightly dimmer */
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.currentPrice {
+  font-size: 20px; /* Larger */
+  font-weight: 700;
+  color: #00ced1; /* Cyan color for discounted price */
+  text-shadow: 0 1px 3px rgba(0, 206, 209, 0.3);
+}
+
+/* Loading Skeleton */
+.skeletonTitle {
+  width: 200px;
+  height: 24px;
+  background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonCard {
+  flex-shrink: 0;
+  width: 250px;
+  height: 360px; /* Match new card height */
+  background: #1a1a1b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.skeletonImage {
+  width: 100%;
+  height: 240px; /* Match new image height */
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonContent {
+  padding: 16px;
+  min-height: 120px; /* Match new content height */
+  background: #141415;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonCategory {
+  width: 60px;
+  height: 12px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 2px;
+}
+
+.skeletonGameTitle {
+  width: 140px;
+  height: 16px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 2px;
+}
+
+.skeletonPrice {
+  width: 80px;
+  height: 20px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 2px;
+  margin-top: auto;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .scrollContainer {
+    gap: 12px;
+  }
+
+  .gameCard {
+    width: 200px;
+    height: 340px; /* Adjusted */
+  }
+
+  .imageContainer {
+    height: 220px; /* Adjusted */
+  }
+
+  .contentArea {
+    min-height: 120px;
+  }
+
+  .skeletonCard {
+    width: 200px;
+    height: 340px;
+  }
+
+  .skeletonImage {
+    height: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topDiscounts {
+    padding: 30px 16px;
+  }
+
+  .navButton {
+    display: none;
+  }
+
+  .scrollContainer {
+    gap: 12px;
+    padding-left: 4px;
+  }
+
+  .gameCard {
+    width: 180px;
+    height: 320px; /* Adjusted */
+  }
+
+  .imageContainer {
+    height: 200px; /* Adjusted */
+  }
+
+  .contentArea {
+    min-height: 120px;
+    padding: 14px;
+  }
+
+  .skeletonCard {
+    width: 180px;
+    height: 320px;
+  }
+
+  .skeletonImage {
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gameCard {
+    width: 160px;
+    height: 300px; /* Adjusted */
+  }
+
+  .imageContainer {
+    height: 180px; /* Adjusted */
+  }
+
+  .contentArea {
+    padding: 12px;
+    min-height: 120px;
+  }
+
+  .gameTitle {
+    font-size: 14px;
+  }
+
+  .currentPrice {
+    font-size: 18px;
+  }
+
+  .regularPrice {
+    font-size: 16px;
+  }
+
+  .skeletonCard {
+    width: 160px;
+    height: 300px;
+  }
+
+  .skeletonImage {
+    height: 180px;
+  }
+}
+
+/* Focus styles for accessibility */
+.navButton:focus {
+  outline: 2px solid #4169e1;
+  outline-offset: 2px;
+}
+
+.gameCard:focus {
+  outline: 2px solid #4169e1;
+  outline-offset: 2px;
+}
+
+/* Smooth scroll behavior */
+@media (prefers-reduced-motion: no-preference) {
+  .scrollContainer {
+    scroll-behavior: smooth;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .gameCard {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .navButton {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}

@@ -1,0 +1,385 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 75px;
+  z-index: 1000;
+
+  /* Glass morphism effect */
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  /* Subtle shadow */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  gap: 20px;
+}
+
+/* Logo Section */
+.logoSection {
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.logo:hover {
+  transform: translateY(-1px);
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  color: #00ced1;
+  transition: all 0.3s ease;
+}
+
+.logo:hover .logoIcon {
+  color: #4169e1;
+  transform: rotate(5deg);
+}
+
+.logoText {
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #4169e1, #00ced1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Search Section */
+.searchSection {
+  flex: 1;
+  max-width: 500px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchExpanded {
+  transform: scale(1.02);
+}
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  height: 45px;
+  background: #1b2838;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 0 20px 0 50px;
+  color: white;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.searchInput:focus {
+  border-color: #4169e1;
+  background: rgba(27, 40, 56, 0.9);
+  box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.1);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.3s ease;
+  pointer-events: none;
+}
+
+.searchInput:focus + .searchIcon,
+.searchContainer:hover .searchIcon {
+  color: #00ced1;
+}
+
+/* Desktop Navigation */
+.desktopNav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.navButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 206, 209, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.navButton:hover::before {
+  left: 100%;
+}
+
+.navButton:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.navIcon {
+  width: 18px;
+  height: 18px;
+  transition: all 0.3s ease;
+}
+
+.navButton:hover .navIcon {
+  color: #00ced1;
+  fill: currentColor;
+}
+
+.signInButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #4169e1;
+  border: none;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.signInButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.signInButton:hover::before {
+  left: 100%;
+}
+
+.signInButton:hover {
+  background: #5a7ae6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(65, 105, 225, 0.3);
+}
+
+.signInIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Mobile Menu */
+.mobileMenuButton {
+  display: none;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobileMenuButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #00ced1;
+}
+
+.mobileNav {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  gap: 12px;
+  flex-direction: column;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobileNavButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.mobileNavButton:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mobileSignInButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #4169e1;
+  border: none;
+  color: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.mobileSignInButton:hover {
+  background: #5a7ae6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .logoText {
+    font-size: 20px;
+  }
+
+  .logoIcon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .searchSection {
+    max-width: none;
+    flex: 1;
+  }
+
+  .searchInput {
+    height: 40px;
+    font-size: 14px;
+    padding: 0 16px 0 45px;
+  }
+
+  .searchIcon {
+    left: 14px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .desktopNav {
+    display: none;
+  }
+
+  .mobileMenuButton {
+    display: flex;
+  }
+
+  .mobileNav {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .searchInput {
+    font-size: 14px;
+  }
+}
+
+/* Smooth scrolling offset for fixed header */
+html {
+  scroll-padding-top: 75px;
+}
