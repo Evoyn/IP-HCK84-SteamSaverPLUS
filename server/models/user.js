@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       User.belongsToMany(models.GameList, { through: models.Wishlist });
+      User.belongsToMany(models.Genre, { through: "UserGenres" });
     }
   }
 
@@ -57,17 +58,6 @@ module.exports = (sequelize, DataTypes) => {
           },
           notNull: {
             msg: "Password is required",
-          },
-        },
-      },
-      favouriteGenre: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        allowNull: false,
-        validate: {
-          maxGenres(value) {
-            if (value.length > 3) {
-              throw new Error("Favourite genres cannot exceed 3.");
-            }
           },
         },
       },

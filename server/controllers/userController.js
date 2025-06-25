@@ -4,13 +4,43 @@ const { signToken } = require("../helpers/jwt");
 module.exports = class UserController {
   static async register(req, res, next) {
     try {
-      const user = await User.create(req.body);
+      const { username, email, password, genres } = req.body;
 
-      const cleanUser = user.toJSON();
-      delete cleanUser.password;
+      if (!Array.isArray(genres) || genres.length === 0) {
+        throw {
+          name: "BadRequest",
+          message: "Genres must be an array with at least 1 item.",
+        };
+      }
 
-      res.status(201).json(cleanUser);
-      //   res.status(201).json(user);
+      if (genres.length > 3) {
+        throw {
+          name: "BadRequest",
+          message: "You can only select up to 3 genres.",
+        };
+      }
+
+      // Create user
+      const user = await User.create({ username, email, password });
+
+      // Optional: validate if genres exist in DB
+      const foundGenres = await Genre.findAll({
+        where: {
+          id: genres,
+        },
+      });
+
+      if (foundGenres.length !== genres.length) {
+        throw { name: "BadRequest", message: "Some genre IDs are invalid." };
+      }
+
+      // Associate genres
+      await user.addGenres(genres); // Sequelize M:N
+
+      res.status(201).json({
+        message: "User registered successfully",
+        user: { id: user.id, username: user.username, email: user.email },
+      });
     } catch (err) {
       next(err);
     }
