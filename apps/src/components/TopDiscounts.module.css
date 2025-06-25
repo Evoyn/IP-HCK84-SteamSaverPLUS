@@ -102,7 +102,7 @@
 .gameCard {
   flex-shrink: 0;
   width: 250px;
-  height: 360px; /* Increased from 320px to give more room */
+  height: 380px; /* Increased to accommodate all content */
   background: #1a1a1b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -191,80 +191,120 @@
 
 /* Content Area */
 .contentArea {
-  height: auto; /* Changed from fixed 60px to auto */
-  min-height: 120px; /* Ensure minimum height */
-  padding: 16px; /* Increased padding */
-  background: linear-gradient(
-    to bottom,
-    #1a1a1b,
-    #141415
-  ); /* Gradient background */
+  height: 140px; /* Increased to show all content */
+  padding: 16px;
+  background: linear-gradient(to bottom, #1a1a1b, #141415);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 8px; /* Add gap between elements */
+}
+
+/* Content wrapper for better structure */
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.textContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .category {
-  font-size: 11px; /* Slightly smaller */
-  color: #00ced1; /* Changed to cyan for better visibility */
-  margin: 0;
+  font-size: 11px;
+  color: #00ced1;
+  margin: 0 0 4px 0; /* Add small bottom margin */
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 600;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .gameTitle {
-  font-size: 16px; /* Increased from 14px */
-  font-weight: 600; /* Increased weight */
+  font-size: 16px;
+  font-weight: 600;
   color: white;
   margin: 0;
   line-height: 1.3;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Allow 2 lines instead of 1 */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-grow: 1; /* Take up available space */
 }
 
 /* Price Section */
 .priceSection {
   margin-top: auto;
-  padding-top: 8px; /* Add some spacing */
+  padding-top: 8px;
+  min-height: 30px; /* Reduced from 48px */
+  display: flex;
+  align-items: flex-end; /* Align to bottom */
+}
+
+/* Single price wrapper for alignment */
+.singlePrice {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
 }
 
 .freePrice {
-  font-size: 18px; /* Larger */
+  font-size: 20px;
   font-weight: 700;
   color: #00ced1;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  line-height: 1;
 }
 
 .regularPrice {
-  font-size: 18px; /* Larger */
+  font-size: 20px;
   font-weight: 700;
   color: white;
+  line-height: 1;
 }
 
 .discountedPrice {
   display: flex;
-  align-items: baseline; /* Changed from column to row layout */
-  gap: 8px;
+  align-items: flex-end; /* Align to bottom instead of baseline */
+  gap: 10px;
+  width: 100%;
 }
 
 .originalPrice {
-  font-size: 14px; /* Larger */
-  color: rgba(255, 255, 255, 0.4); /* Slightly dimmer */
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
   text-decoration: line-through;
   font-weight: 500;
+  line-height: 1;
+  padding-bottom: 2px; /* Slight adjustment for visual alignment */
 }
 
 .currentPrice {
-  font-size: 20px; /* Larger */
+  font-size: 20px;
   font-weight: 700;
-  color: #00ced1; /* Cyan color for discounted price */
+  color: #00ced1;
   text-shadow: 0 1px 3px rgba(0, 206, 209, 0.3);
+  line-height: 1;
+}
+
+/* Ensure all price displays have consistent structure */
+.priceWrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Ensure consistent height for all price types */
+.priceDisplay {
+  display: flex;
+  align-items: flex-end;
+  height: 24px; /* Fixed height for alignment */
 }
 
 /* Loading Skeleton */
@@ -280,7 +320,7 @@
 .skeletonCard {
   flex-shrink: 0;
   width: 250px;
-  height: 360px; /* Match new card height */
+  height: 380px; /* Match new card height */
   background: #1a1a1b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -297,11 +337,10 @@
 
 .skeletonContent {
   padding: 16px;
-  min-height: 120px; /* Match new content height */
-  background: #141415;
+  height: 140px; /* Match increased content area */
+  background: linear-gradient(to bottom, #1a1a1b, #141415);
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .skeletonCategory {
@@ -315,11 +354,12 @@
 
 .skeletonGameTitle {
   width: 140px;
-  height: 16px;
+  height: 32px; /* Increased to match 2-line title space */
   background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 2px;
+  margin-bottom: auto; /* Push price to bottom */
 }
 
 .skeletonPrice {
@@ -330,6 +370,7 @@
   animation: shimmer 1.5s infinite;
   border-radius: 2px;
   margin-top: auto;
+  align-self: flex-end;
 }
 
 @keyframes shimmer {
@@ -349,7 +390,7 @@
 
   .gameCard {
     width: 200px;
-    height: 340px; /* Adjusted */
+    height: 360px; /* Adjusted */
   }
 
   .imageContainer {
@@ -357,16 +398,20 @@
   }
 
   .contentArea {
-    min-height: 120px;
+    height: 140px; /* Maintain fixed height */
   }
 
   .skeletonCard {
     width: 200px;
-    height: 340px;
+    height: 360px;
   }
 
   .skeletonImage {
     height: 220px;
+  }
+
+  .skeletonContent {
+    height: 140px; /* Match content area */
   }
 }
 
@@ -386,7 +431,7 @@
 
   .gameCard {
     width: 180px;
-    height: 320px; /* Adjusted */
+    height: 340px; /* Adjusted */
   }
 
   .imageContainer {
@@ -394,24 +439,28 @@
   }
 
   .contentArea {
-    min-height: 120px;
+    height: 140px; /* Maintain fixed height */
     padding: 14px;
   }
 
   .skeletonCard {
     width: 180px;
-    height: 320px;
+    height: 340px;
   }
 
   .skeletonImage {
     height: 200px;
+  }
+
+  .skeletonContent {
+    height: 140px; /* Match content area */
   }
 }
 
 @media (max-width: 480px) {
   .gameCard {
     width: 160px;
-    height: 300px; /* Adjusted */
+    height: 320px; /* Adjusted */
   }
 
   .imageContainer {
@@ -420,28 +469,38 @@
 
   .contentArea {
     padding: 12px;
-    min-height: 120px;
+    height: 140px; /* Maintain fixed height */
   }
 
   .gameTitle {
     font-size: 14px;
+    min-height: 38px; /* Maintain consistent height */
   }
 
   .currentPrice {
     font-size: 18px;
   }
 
-  .regularPrice {
-    font-size: 16px;
+  .regularPrice,
+  .freePrice {
+    font-size: 18px;
+  }
+
+  .originalPrice {
+    font-size: 13px;
   }
 
   .skeletonCard {
     width: 160px;
-    height: 300px;
+    height: 320px;
   }
 
   .skeletonImage {
     height: 180px;
+  }
+
+  .skeletonContent {
+    height: 140px; /* Match content area */
   }
 }
 

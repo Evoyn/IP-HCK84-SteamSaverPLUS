@@ -1,17 +1,22 @@
 import "./App.css";
-import FeaturedCarousel from "./components/FeaturedCarousel";
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-import TopDiscounts from "./components/TopDiscounts";
+import { BrowserRouter, Route, Routes } from "react-router";
+import { MainLayout } from "./layouts/MainLayout";
+import { Home } from "./pages/Home";
+import { AuthLayout } from "./layouts/AuthLayout";
+import RegisterPage from "./pages/Register";
 
 function App() {
   return (
-    <>
-      <Header />
-      <FeaturedCarousel />
-      <TopDiscounts />
-      <Footer />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AuthLayout />}>
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
