@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, Compass, Heart, User, Menu, X, Gamepad2 } from "lucide-react";
 import styles from "./Header.module.css";
+import { Link } from "react-router";
 
 const Header = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -54,10 +55,10 @@ const Header = () => {
             <Heart className={styles.navIcon} />
             <span>Wishlist</span>
           </button>
-          <button className={styles.signInButton}>
+          <Link to="/register" className={styles.signInButton}>
             <User className={styles.signInIcon} />
             <span>Sign In</span>
-          </button>
+          </Link>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -81,10 +82,10 @@ const Header = () => {
             <Heart className={styles.navIcon} />
             <span>Wishlist</span>
           </button>
-          <button className={styles.mobileSignInButton}>
+          <Link to="/register" className={styles.mobileSignInButton}>
             <User className={styles.signInIcon} />
             <span>Sign In</span>
-          </button>
+          </Link>
         </div>
       )}
     </header>
