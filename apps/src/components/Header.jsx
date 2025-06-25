@@ -47,15 +47,15 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className={styles.desktopNav}>
-          <button className={styles.navButton}>
+          <Link to="/discover" className={styles.navButton}>
             <Compass className={styles.navIcon} />
             <span>Discover</span>
-          </button>
-          <button className={styles.navButton}>
+          </Link>
+          <Link to="/wishlist" className={styles.navButton}>
             <Heart className={styles.navIcon} />
             <span>Wishlist</span>
-          </button>
-          <Link to="/register" className={styles.signInButton}>
+          </Link>
+          <Link to="/login" className={styles.signInButton}>
             <User className={styles.signInIcon} />
             <span>Sign In</span>
           </Link>
@@ -82,7 +82,7 @@ const Header = () => {
             <Heart className={styles.navIcon} />
             <span>Wishlist</span>
           </button>
-          <Link to="/register" className={styles.mobileSignInButton}>
+          <Link to="/login" className={styles.mobileSignInButton}>
             <User className={styles.signInIcon} />
             <span>Sign In</span>
           </Link>
