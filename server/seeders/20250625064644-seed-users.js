@@ -7,7 +7,7 @@ module.exports = {
       {
         username: "Nebu",
         email: "nebu@gmail.com",
-        password: hashPassword("defaultpassword"),
+        password: hashPassword("123456"),
         favouriteGenre: ["Shooter", "MMORPG", "Action"], // max 3 allowed
         createdAt: new Date(),
         updatedAt: new Date(),

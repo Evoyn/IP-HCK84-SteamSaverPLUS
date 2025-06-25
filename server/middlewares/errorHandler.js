@@ -16,14 +16,18 @@ function errorHandler(err, req, res, next) {
     case "JsonWebTokenError":
       res.status(401).json({ message: "Invalid token" });
       break;
-    case "BadRequest":
-      res.status(400).json({ message: err.message });
-      break;
-    case "Forbidden":
-      res.status(403).json({ message: err.message });
-      break;
+    case "GameNotFound":
+    case "NotInWishlist":
     case "NotFound":
-      res.status(404).json({ message: err.message });
+      code = 404;
+      message = err.message || "Resource not found";
+      res.status(404).json({ message });
+      break;
+    case "AlreadyWishlisted":
+    case "BadRequest":
+      code = 400;
+      message = err.message || "Bad Request";
+      res.status(400).json({ message });
       break;
     default:
       res.status(500).json({ message: "Internal server error" });
