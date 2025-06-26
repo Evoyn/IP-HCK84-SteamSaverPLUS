@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./TopDiscounts.module.css";
+import WishlistIcon from "./WishlistIcon";
+import { Link, Links } from "react-router";
 
 const TopDiscounts = ({ excludedDealIds = [] }) => {
   const [games, setGames] = useState([]);
@@ -14,103 +16,56 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Convert excludedDealIds to a string for stable comparison
   const excludedIdsString = excludedDealIds.join(",");
 
-  // Fetch deals from CheapShark API
   useEffect(() => {
-    const fetchDeals = async () => {
+    const fetchGames = async () => {
       try {
         setIsLoading(true);
         setError(null);
+        const response = await axios.get("http://localhost:3000/games");
 
-        // Fetch more deals to ensure we have enough after filtering
-        const response = await axios.get(
-          "https://www.cheapshark.com/api/1.0/deals?storeID=1&pageSize=25&onSale=1"
-        );
+        const shuffled = response.data
+          .sort(() => Math.random() - 0.5) // Randomize
+          .slice(0, 20); // Pick 20 only
 
-        // Transform and filter the data
-        const transformedGames = response.data
-          .filter((game) => {
-            // Exclude games already in carousel
-            if (
-              excludedDealIds &&
-              excludedDealIds.length > 0 &&
-              excludedDealIds.includes(game.dealID)
-            ) {
-              return false;
-            }
-            // Only include games with some discount
-            const savings = parseFloat(game.savings);
-            return savings > 0;
-          })
-          .slice(0, 15) // Get up to 15 games
-          .map((game) => {
-            const savings = Math.round(parseFloat(game.savings));
-
-            // Determine category based on metacritic score or rating
-            let category = "ACTION";
-            if (game.metacriticScore) {
-              const score = parseInt(game.metacriticScore);
-              if (score >= 85) category = "CRITICALLY ACCLAIMED";
-              else if (score >= 75) category = "HIGHLY RATED";
-              else if (score >= 60) category = "RECOMMENDED";
-            } else if (game.steamRatingText) {
-              if (game.steamRatingText.includes("Overwhelmingly"))
-                category = "OVERWHELMINGLY POSITIVE";
-              else if (game.steamRatingText.includes("Very"))
-                category = "VERY POSITIVE";
-              else if (game.steamRatingText.includes("Mostly"))
-                category = "MOSTLY POSITIVE";
-            }
-
-            return {
-              id: game.dealID,
-              title: game.title,
-              category: category,
-              image: game.thumb,
-              discount: savings,
-              originalPrice: parseFloat(game.normalPrice),
-              currentPrice: parseFloat(game.salePrice),
-              dealID: game.dealID,
-              steamAppID: game.steamAppID,
-              metacriticScore: game.metacriticScore,
-              steamRatingText: game.steamRatingText,
-              steamRatingPercent: game.steamRatingPercent,
-            };
-          });
+        const transformedGames = shuffled.map((game) => ({
+          id: game.id,
+          title: game.title,
+          category: game.category || "FREE GAME",
+          image: game.thumbnail,
+          discount: game.discount || 0,
+          originalPrice: game.originalPrice,
+          currentPrice: 0,
+          game_url: game.game_url,
+        }));
 
         setGames(transformedGames);
       } catch (err) {
-        console.error("Error fetching deals:", err);
-        setError(err.message || "Failed to load deals");
+        console.error("Error fetching games:", err);
+        setError(err.message || "Failed to load games");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDeals();
-  }, [excludedIdsString]); // Use string comparison for stability
+    fetchGames();
+  }, [excludedIdsString]);
 
-  // Check scroll position
   const checkScrollPosition = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
-
     const { scrollLeft, scrollWidth, clientWidth } = container;
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
   };
 
-  // Handle scroll
   const handleScroll = (direction) => {
     const container = scrollContainerRef.current;
     if (!container) return;
-
-    const cardWidth = 250; // Width of each card
-    const gap = 16; // Gap between cards
-    const scrollAmount = (cardWidth + gap) * 3; // Scroll 3 cards at a time
-
+    const cardWidth = 250;
+    const gap = 16;
+    const scrollAmount = (cardWidth + gap) * 3;
     if (direction === "left") {
       container.scrollLeft -= scrollAmount;
     } else {
@@ -118,29 +73,15 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
     }
   };
 
-  // Handle image load
   const handleImageLoad = (gameId) => {
     setLoadedImages((prev) => new Set([...prev, gameId]));
   };
 
-  // Handle game click
-  const handleGameClick = (game) => {
-    if (game.dealID) {
-      window.open(
-        `https://www.cheapshark.com/redirect?dealID=${game.dealID}`,
-        "_blank"
-      );
-    }
-  };
-
-  // Add scroll listener
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-
     container.addEventListener("scroll", checkScrollPosition);
-    checkScrollPosition(); // Initial check
-
+    checkScrollPosition();
     return () => {
       container.removeEventListener("scroll", checkScrollPosition);
     };
@@ -150,27 +91,25 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
     return <TopDiscountsSkeleton />;
   }
 
-  // Show error message for debugging
   if (error) {
     return (
       <section className={styles.topDiscounts}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Top Discounts</h2>
+          <h2 className={styles.title}>Free Games</h2>
         </div>
         <p style={{ color: "white", textAlign: "center" }}>Error: {error}</p>
       </section>
     );
   }
 
-  // Show message if no games
   if (games.length === 0) {
     return (
       <section className={styles.topDiscounts}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Top Discounts</h2>
+          <h2 className={styles.title}>Free Games</h2>
         </div>
         <p style={{ color: "white", textAlign: "center" }}>
-          No deals available at the moment
+          No free games available at the moment
         </p>
       </section>
     );
@@ -179,12 +118,10 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
   return (
     <section className={styles.topDiscounts}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Top Discounts</h2>
+        <h2 className={styles.title}>Free Games</h2>
       </div>
-
       <div className={styles.cardsWrapper}>
-        {/* Navigation Buttons */}
-        <button
+        <Link
           className={`${styles.navButton} ${styles.navLeft} ${
             !canScrollLeft ? styles.disabled : ""
           }`}
@@ -193,9 +130,8 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
           aria-label="Scroll left"
         >
           <ChevronLeft />
-        </button>
-
-        <button
+        </Link>
+        <Link
           className={`${styles.navButton} ${styles.navRight} ${
             !canScrollRight ? styles.disabled : ""
           }`}
@@ -204,9 +140,7 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
           aria-label="Scroll right"
         >
           <ChevronRight />
-        </button>
-
-        {/* Games Container */}
+        </Link>
         <div className={styles.scrollContainer} ref={scrollContainerRef}>
           {games.map((game, index) => (
             <GameCard
@@ -215,7 +149,6 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
               index={index}
               onImageLoad={handleImageLoad}
               isImageLoaded={loadedImages.has(game.id)}
-              onClick={() => handleGameClick(game)}
             />
           ))}
         </div>
@@ -224,15 +157,18 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
   );
 };
 
-// Game Card Component
-const GameCard = ({ game, index, onImageLoad, isImageLoaded, onClick }) => {
+const GameCard = ({ game, index, onImageLoad, isImageLoaded }) => {
+  const handleCardClick = () => {
+    window.open(game.game_url, "_blank");
+  };
+
   return (
     <article
       className={styles.gameCard}
       style={{ animationDelay: `${index * 0.05}s` }}
-      onClick={onClick}
+      onClick={handleCardClick}
       tabIndex={0}
-      onKeyPress={(e) => e.key === "Enter" && onClick()}
+      onKeyPress={(e) => e.key === "Enter" && handleCardClick()}
     >
       <div className={styles.imageContainer}>
         <img
@@ -251,23 +187,21 @@ const GameCard = ({ game, index, onImageLoad, isImageLoaded, onClick }) => {
           <div className={styles.discountBadge}>-{game.discount}%</div>
         )}
       </div>
-
       <div className={styles.contentArea}>
-        <p className={styles.category}>{game.category}</p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          <p className={styles.category}>{game.category}</p>
+          <WishlistIcon game={game} />
+        </div>
         <h3 className={styles.gameTitle}>{game.title}</h3>
-
         <div className={styles.priceSection}>
           {game.currentPrice === 0 ? (
             <p className={styles.freePrice}>FREE</p>
-          ) : game.discount > 0 ? (
-            <div className={styles.discountedPrice}>
-              <span className={styles.originalPrice}>
-                ${game.originalPrice.toFixed(2)}
-              </span>
-              <span className={styles.currentPrice}>
-                ${game.currentPrice.toFixed(2)}
-              </span>
-            </div>
           ) : (
             <p className={styles.regularPrice}>
               ${game.currentPrice.toFixed(2)}
@@ -279,14 +213,12 @@ const GameCard = ({ game, index, onImageLoad, isImageLoaded, onClick }) => {
   );
 };
 
-// Loading Skeleton Component
 const TopDiscountsSkeleton = () => {
   return (
     <section className={styles.topDiscounts}>
       <div className={styles.header}>
         <div className={styles.skeletonTitle} />
       </div>
-
       <div className={styles.cardsWrapper}>
         <div className={styles.scrollContainer}>
           {[...Array(6)].map((_, index) => (

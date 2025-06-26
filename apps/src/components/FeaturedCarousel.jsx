@@ -82,7 +82,7 @@ const FeaturedCarousel = () => {
               logo: null, // CheapShark doesn't provide logos
               thumbnail: game.thumb,
               ctaText: "Get Deal",
-              ctaSecondary: "View on Steam",
+              // ctaSecondary: "View on Steam",
               badge: badge,
               gradient: gradients[index % gradients.length],
               dealID: game.dealID,
@@ -139,7 +139,7 @@ const FeaturedCarousel = () => {
                 logo: null,
                 thumbnail: game.thumb,
                 ctaText: "Get Deal",
-                ctaSecondary: "View Details",
+                // ctaSecondary: "View Details",
                 badge: savings > 0 ? "ON SALE" : "FEATURED",
                 gradient: gradients[index % gradients.length],
                 dealID: game.dealID,
@@ -177,7 +177,7 @@ const FeaturedCarousel = () => {
             logo: null,
             thumbnail: "/placeholder.svg?height=80&width=80",
             ctaText: "Retry",
-            ctaSecondary: "Go Back",
+            // ctaSecondary: "Go Back",
             badge: "ERROR",
             gradient: "linear-gradient(135deg, #ff6b6b, #ff8787, #ff6b6b)",
           },
@@ -279,14 +279,14 @@ const FeaturedCarousel = () => {
     }
   };
 
-  const handleSecondaryClick = (game) => {
-    if (game.steamAppID) {
-      window.open(
-        `https://store.steampowered.com/app/${game.steamAppID}`,
-        "_blank"
-      );
-    }
-  };
+  // const handleSecondaryClick = (game) => {
+  //   if (game.steamAppID) {
+  //     window.open(
+  //       `https://store.steampowered.com/app/${game.steamAppID}`,
+  //       "_blank"
+  //     );
+  //   }
+  // };
 
   if (isLoading) {
     return <CarouselSkeleton />;
@@ -367,13 +367,13 @@ const FeaturedCarousel = () => {
                   <ShoppingCart className={styles.buttonIcon} />
                   {currentGame.ctaText}
                 </button>
-                <button
+                {/* <button
                   className={styles.secondaryButton}
                   onClick={() => handleSecondaryClick(currentGame)}
                 >
                   <Heart className={styles.buttonIcon} />
                   {currentGame.ctaSecondary}
-                </button>
+                </button> */}
               </div>
             </div>
 
