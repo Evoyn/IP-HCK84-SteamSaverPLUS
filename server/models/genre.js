@@ -4,8 +4,12 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Genre extends Model {
     static associate(models) {
-      // M:N relation, to be set up after UserGenres join table is created
-      Genre.belongsToMany(models.User, { through: "UserGenres" });
+      // M:N relation with User
+      Genre.belongsToMany(models.User, {
+        through: "UserGenres",
+        foreignKey: "GenreId", // Changed to match migration (capital G)
+        otherKey: "UserId", // Added otherKey (capital U)
+      });
     }
   }
 

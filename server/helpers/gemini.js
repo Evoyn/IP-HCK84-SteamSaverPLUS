@@ -4,10 +4,11 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { GOOGLE_API_KEY } = process.env;
 const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
 
-async function generateContent(prompt) {
+async function generateContent(prompt, modelName = "gemini-2.5-flash") {
+  // Default to 2.5 Flash
   try {
-    // Get the generative model - using gemini-1.5-flash for free tier
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Get the generative model
+    const model = genAI.getGenerativeModel({ model: modelName });
 
     // Generate content
     const result = await model.generateContent(prompt);
@@ -20,6 +21,10 @@ async function generateContent(prompt) {
     throw error;
   }
 }
+
+// Example usage:
+// generateContent("Tell me a story about a dragon.", "gemini-2.0-flash");
+// generateContent("Summarize this article:", "gemini-2.5-flash");
 
 module.exports = {
   generateContent,

@@ -1,6 +1,7 @@
 const { generateContent } = require("../helpers/gemini");
 const { User, Genre, GameList } = require("../models");
 const { Op } = require("sequelize");
+const { sequelize } = require("../models");
 // const sequelize = require("../config/database"); // Add this import for random ordering
 
 const gameRecommendationController = {
@@ -66,7 +67,7 @@ const gameRecommendationController = {
 function createGameRecommendationPrompt(favoriteGenres) {
   const genresString = favoriteGenres.join(", ");
 
-  return `You are a knowledgeable game recommendation expert. Based on the user's favorite genres: ${genresString}, Recommend 10 **unique** free PC games based on these genres: Shooter, MMORPG, and Action.
+  return `You are a knowledgeable game recommendation expert. Based on the user's favorite genres: ${genresString}, Recommend 6 **unique** free PC games
 
 Avoid repeating the same games. Choose a **diverse** list from various developers and game types.
 
@@ -76,8 +77,6 @@ For each game, provide:
 3. Developer/Publisher
 4. Platforms Available
 5. Primary Genres
-6. Brief Description (2-3 sentences)
-7. Why it matches their preferences
 8. Rating (out of 10)
 
 Format your response as a JSON array with the following structure:
@@ -88,8 +87,6 @@ Format your response as a JSON array with the following structure:
     "developer": "Developer Name",
     "platforms": ["PC", "PS5", "Xbox"],
     "genres": ["RPG", "Action"],
-    "description": "Brief game description",
-    "matchReason": "Why this game matches their preferences",
     "rating": 8.5
   }
 ]
@@ -193,7 +190,6 @@ async function enrichRecommendationsWithGameList(recommendations, userGenres) {
             id: gameFromDb.id,
             title: gameFromDb.title,
             thumbnail: gameFromDb.thumbnail,
-            short_description: gameFromDb.short_description || rec.description,
             game_url: gameFromDb.game_url,
             genre: gameFromDb.genre,
             platform: gameFromDb.platform,
@@ -202,8 +198,6 @@ async function enrichRecommendationsWithGameList(recommendations, userGenres) {
             release_date: gameFromDb.release_date,
             freetogame_profile_url: gameFromDb.freetogame_profile_url,
             rating: rec.rating || null,
-            matchReason:
-              rec.matchReason || `Matches your interest in ${gameFromDb.genre}`,
             fromDatabase: true,
           };
         }

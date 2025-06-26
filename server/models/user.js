@@ -6,7 +6,11 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       User.belongsToMany(models.GameList, { through: models.Wishlist });
-      User.belongsToMany(models.Genre, { through: "UserGenres" });
+      User.belongsToMany(models.Genre, {
+        through: "UserGenres",
+        foreignKey: "UserId", // Changed to match migration (capital U)
+        otherKey: "GenreId", // Added otherKey (capital G)
+      });
     }
   }
 
@@ -19,7 +23,6 @@ module.exports = (sequelize, DataTypes) => {
           args: true,
           msg: "Username must be unique",
         },
-        allowNull: false,
         validate: {
           notEmpty: {
             msg: "Username is required",
@@ -36,7 +39,6 @@ module.exports = (sequelize, DataTypes) => {
           args: true,
           msg: "Email must be unique",
         },
-        allowNull: false,
         validate: {
           notEmpty: {
             msg: "Email is required",

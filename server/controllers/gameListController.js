@@ -1,4 +1,4 @@
-const { GameList } = require("../models");
+const { GameList, Genre } = require("../models");
 
 module.exports = class GameListController {
   static async getAllGames(req, res, next) {
@@ -60,6 +60,15 @@ module.exports = class GameListController {
       res.status(204).send();
     } catch (err) {
       next(err);
+    }
+  }
+
+  static async getGenreGames(req, res, next) {
+    try {
+      const genre = await Genre.findAll();
+      res.status(200).json(genre);
+    } catch (error) {
+      next(error);
     }
   }
 };

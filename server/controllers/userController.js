@@ -1,6 +1,9 @@
-const { User } = require("../models");
+const { User, Genre } = require("../models");
 const { comparePassword } = require("../helpers/bcrypt");
 const { signToken } = require("../helpers/jwt");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client();
+
 module.exports = class UserController {
   static async register(req, res, next) {
     try {
@@ -72,6 +75,51 @@ module.exports = class UserController {
       const access_token = signToken({ id: user.id });
 
       res.status(200).json({ access_token });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async googleLogin(req, res, next) {
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: req.body.googleToken,
+        audience: process.env.GOOGLE_CLIENT_ID, // Specify the WEB_CLIENT_ID of the app that accesses the backend
+        // Or, if multiple clients access the backend:
+        //[WEB_CLIENT_ID_1, WEB_CLIENT_ID_2, WEB_CLIENT_ID_3]
+      });
+      const payload = ticket.getPayload();
+      console.log("Google login payload:", payload);
+      const userid = payload["sub"];
+      // If the request specified a Google Workspace domain:
+      // const domain = payload['hd'];
+
+      let user = await User.findOne({
+        where: { email: payload.email },
+      });
+
+      if (!user) {
+        // If user does not exist, create a new one
+        user = await User.create({
+          username: payload.name + " " + Math.random().toString(36).slice(-5), // Ensure unique username
+          email: payload.email,
+          password: Math.random().toString(36).slice(-8),
+        });
+
+        function getRandomGenres(count) {
+          const nums = Array.from({ length: 18 }, (_, i) => i + 1);
+          const shuffled = nums.sort(() => Math.random() - 0.5);
+          return shuffled.slice(0, count);
+        }
+
+        const randomGenres = getRandomGenres(3);
+
+        await user.addGenres(randomGenres); // Add default genres or handle as needed
+      }
+
+      const access_token = signToken({ id: user.id });
+
+      res.status(200).json({ Login: "Google login successful", access_token });
     } catch (err) {
       next(err);
     }
