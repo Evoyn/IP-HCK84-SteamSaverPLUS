@@ -24,6 +24,10 @@ function errorHandler(err, req, res, next) {
       res.status(404).json({ message });
       break;
     case "AlreadyWishlisted":
+      code = 400;
+      message = err.message || "You already have this game in your wishlist";
+      res.status(400).json({ message });
+      break;
     case "BadRequest":
       code = 400;
       message = err.message || "Bad Request";

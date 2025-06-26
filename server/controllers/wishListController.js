@@ -57,6 +57,9 @@ class WishlistController {
       const userId = req.user.id;
       const { gameId } = req.params;
 
+      // console.log(gameId, "<<<< gameId in remove wishlist");
+      // console.log(userId, "<<<< userId in remove wishlist");
+
       const found = await Wishlist.findOne({
         where: {
           UserId: userId,
