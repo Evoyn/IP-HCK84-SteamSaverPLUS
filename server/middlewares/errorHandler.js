@@ -1,6 +1,7 @@
 function errorHandler(err, req, res, next) {
-  //   console.log(err.name, "<<<");
-  console.log(err);
+  console.log("=== ERROR HANDLER REACHED ===");
+  console.log("Error name:", err.name);
+  console.log("Error:", err);
 
   switch (err.name) {
     case "SequelizeValidationError":
