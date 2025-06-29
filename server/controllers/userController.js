@@ -2,12 +2,20 @@ const { User, Genre } = require("../models");
 const { comparePassword } = require("../helpers/bcrypt");
 const { signToken } = require("../helpers/jwt");
 const { OAuth2Client } = require("google-auth-library");
-const client = new OAuth2Client();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 module.exports = class UserController {
   static async register(req, res, next) {
     try {
       const { username, email, password, genres } = req.body;
+
+      if (!username) {
+        throw { name: "BadRequest", message: "Username is required" };
+      }
+
+      if (!email) {
+        throw { name: "BadRequest", message: "Email is required" };
+      }
 
       if (!Array.isArray(genres) || genres.length === 0) {
         throw {
@@ -21,6 +29,16 @@ module.exports = class UserController {
           name: "BadRequest",
           message: "You can only select up to 3 genres.",
         };
+      }
+
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ message: "Email must be unique" });
+      }
+
+      const existingUsername = await User.findOne({ where: { username } });
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username must be unique" });
       }
 
       // Create user
@@ -88,6 +106,8 @@ module.exports = class UserController {
         // Or, if multiple clients access the backend:
         //[WEB_CLIENT_ID_1, WEB_CLIENT_ID_2, WEB_CLIENT_ID_3]
       });
+      console.log("TICKET:", ticket);
+
       const payload = ticket.getPayload();
       console.log("Google login payload:", payload);
       const userid = payload["sub"];
@@ -121,6 +141,7 @@ module.exports = class UserController {
 
       res.status(200).json({ Login: "Google login successful", access_token });
     } catch (err) {
+      console.log("GOOGLE LOGIN ERROR:", err);
       next(err);
     }
   }
