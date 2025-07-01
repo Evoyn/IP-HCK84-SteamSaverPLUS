@@ -330,7 +330,7 @@ describe("/games", () => {
     describe("Success", () => {
       test("Berhasil mendapatkan semua genres (200)", async () => {
         const { status, body } = await request(app)
-          .get("/genres")
+          .get("/games/genre")
           .set("Authorization", `Bearer ${tokenAdmin}`);
 
         expect(status).toBe(200);
@@ -343,7 +343,7 @@ describe("/games", () => {
 
     describe("Failed", () => {
       test("Gagal mendapatkan genres karena belum login (401)", async () => {
-        const { status, body } = await request(app).get("/genres");
+        const { status, body } = await request(app).get("/games/genre");
 
         expect(status).toBe(401);
         expect(body).toHaveProperty("message", "Invalid token");

@@ -31,12 +31,14 @@ module.exports = class PubGameListController {
       let pageNumber = 1;
       if (page) {
         if (page.size) {
-          limit = page.size;
+          let parsedSize = parseInt(page.size);
+          limit = parsedSize > 0 ? parsedSize : 10;
           paramsQuerySQL.limit = limit;
         }
 
         if (page.number) {
-          pageNumber = page.number;
+          let parsedNumber = parseInt(page.number);
+          pageNumber = parsedNumber >= 1 ? parsedNumber : 1;
           paramsQuerySQL.offset = limit * (pageNumber - 1);
         }
       }
@@ -58,12 +60,7 @@ module.exports = class PubGameListController {
   static async getGameById(req, res, next) {
     try {
       const { id } = req.params;
-      const game = await GameList.findOne({
-        where: {
-          id,
-          isPublic: true,
-        },
-      });
+      const game = await GameList.findByPk(id);
       if (!game) {
         throw { name: "NotFound", message: "Game not found" };
       }
