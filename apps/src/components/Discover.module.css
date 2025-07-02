@@ -39,37 +39,6 @@
   margin: 0;
 }
 
-.viewToggle {
-  display: flex;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.viewButton {
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.viewButton:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.viewButton.active {
-  background: #4169e1;
-  color: white;
-}
-
 /* Search Section */
 .searchSection {
   margin-bottom: 32px;
@@ -235,23 +204,17 @@
   font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
   padding: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 /* Games Container */
 .gamesContainer {
-  margin-bottom: 40px;
-}
-
-.gamesContainer.gridView {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
-}
-
-.gamesContainer.listView {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  margin-bottom: 40px;
 }
 
 /* Game Card */
@@ -280,27 +243,12 @@
   border-color: rgba(0, 206, 209, 0.3);
 }
 
-.gameCard.listCard {
-  display: flex;
-  height: 160px;
-}
-
-.gameCard.listCard:hover {
-  transform: translateY(-2px) scale(1.01);
-}
-
 /* Image Container */
 .imageContainer {
   position: relative;
   width: 100%;
   height: 200px;
   overflow: hidden;
-}
-
-.listCard .imageContainer {
-  width: 200px;
-  height: 100%;
-  flex-shrink: 0;
 }
 
 .gameImage {
@@ -390,6 +338,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
 }
 
 .quickAction:hover {
@@ -410,7 +360,6 @@
 /* Card Content */
 .cardContent {
   padding: 16px;
-  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -429,21 +378,6 @@
   letter-spacing: 0.5px;
 }
 
-.rating {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.starIcon {
-  width: 12px;
-  height: 12px;
-  color: #fbbf24;
-  fill: currentColor;
-}
-
 .gameTitle {
   font-size: 16px;
   font-weight: 600;
@@ -454,28 +388,6 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.listCard .gameTitle {
-  font-size: 18px;
-  -webkit-line-clamp: 1;
-}
-
-.genres {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.genreTag {
-  padding: 2px 8px;
-  background: rgba(0, 206, 209, 0.2);
-  border: 1px solid rgba(0, 206, 209, 0.3);
-  border-radius: 8px;
-  font-size: 11px;
-  color: #00ced1;
-  font-weight: 500;
 }
 
 /* Price Section */
@@ -489,28 +401,13 @@
   color: #22c55e;
 }
 
-.regularPrice {
-  font-size: 18px;
-  font-weight: 700;
-  color: white;
+.releaseInfo {
+  margin-top: 4px;
 }
 
-.discountedPrice {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.originalPrice {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  text-decoration: line-through;
-}
-
-.currentPrice {
-  font-size: 18px;
-  font-weight: 700;
-  color: white;
+.publisherInfo {
+  margin-top: 8px;
+  font-size: 12px;
 }
 
 /* No Results */
@@ -675,9 +572,160 @@
   }
 }
 
+/* Genre Grouping Styles */
+.genreGroupsContainer {
+  margin-bottom: 40px;
+}
+
+.genreGroup {
+  margin-bottom: 32px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.genreHeader {
+  width: 100%;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.genreHeader:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 206, 209, 0.3);
+}
+
+.genreHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.genreChevron {
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: transform 0.3s ease;
+}
+
+.genreChevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.genreTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.genreCount {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.genreGroup .gamesContainer {
+  padding-left: 20px;
+  margin-bottom: 24px;
+}
+
+/* Genre Controls */
+.genreControls {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.genreControlBtn {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.genreControlBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(0, 206, 209, 0.3);
+}
+
+/* Error State */
+.errorState {
+  text-align: center;
+  padding: 80px 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.errorState h2 {
+  font-size: 32px;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.errorState p {
+  font-size: 16px;
+  margin-bottom: 24px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.retryButton {
+  padding: 12px 24px;
+  background: #4169e1;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retryButton:hover {
+  background: #5a7ae6;
+  transform: translateY(-2px);
+}
+
+/* Focus styles for accessibility */
+.searchInput:focus,
+.filterButton:focus,
+.pageButton:focus,
+.pageNumber:focus,
+.gameCard:focus {
+  outline: 2px solid #4169e1;
+  outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .gameCard {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .filterButton {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .gamesContainer.gridView {
+  .gamesContainer {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
   }
@@ -715,21 +763,36 @@
   .resultsCount {
     margin-left: 0;
     text-align: center;
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .gamesContainer.gridView {
+  .gamesContainer {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 16px;
   }
 
-  .gameCard.listCard {
-    flex-direction: column;
-    height: auto;
+  .genreGroup .gamesContainer {
+    padding-left: 0;
   }
 
-  .listCard .imageContainer {
+  .genreHeader {
+    padding: 12px 16px;
+  }
+
+  .genreTitle {
+    font-size: 18px;
+  }
+
+  .genreControls {
+    display: flex;
     width: 100%;
-    height: 160px;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
+  .genreControlBtn {
+    flex: 1;
   }
 
   .pagination {
@@ -745,7 +808,7 @@
 }
 
 @media (max-width: 480px) {
-  .gamesContainer.gridView {
+  .gamesContainer {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 12px;
   }
@@ -766,30 +829,7 @@
     font-size: 14px;
   }
 
-  .currentPrice,
-  .regularPrice,
   .freePrice {
     font-size: 16px;
-  }
-}
-
-/* Focus styles for accessibility */
-.searchInput:focus,
-.filterButton:focus,
-.pageButton:focus,
-.pageNumber:focus,
-.gameCard:focus {
-  outline: 2px solid #4169e1;
-  outline-offset: 2px;
-}
-
-/* High contrast mode */
-@media (prefers-contrast: high) {
-  .gameCard {
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-
-  .filterButton {
-    border-color: rgba(255, 255, 255, 0.3);
   }
 }

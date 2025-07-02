@@ -23,9 +23,10 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await axios.get("http://localhost:3000/games");
+        const response = await axios.get("http://localhost:3000/pub-games");
+        console.log(response.data.data, "<<<<<<<<<<<<<<<<<");
 
-        const shuffled = response.data
+        const shuffled = response.data.data
           .sort(() => Math.random() - 0.5) // Randomize
           .slice(0, 20); // Pick 20 only
 

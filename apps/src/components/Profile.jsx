@@ -1,125 +1,44 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import {
-  Eye,
-  EyeOff,
   Check,
   X,
   Info,
   ChevronDown,
   Gamepad2,
-  Sword,
-  Compass,
-  Dice6,
-  Crown,
-  Settings,
-  Zap,
-  Car,
-  Ghost,
-  Puzzle,
-  Crosshair,
   User,
   Mail,
-  Lock,
   Save,
   Edit3,
-  Camera,
 } from "lucide-react";
 import styles from "./profile.module.css";
 
-// Genre options with icons and examples (same as register)
-const genres = [
-  {
-    id: "action",
-    name: "Action",
-    icon: Sword,
-    examples: "Call of Duty, GTA, Assassin's Creed",
-  },
-  {
-    id: "adventure",
-    name: "Adventure",
-    icon: Compass,
-    examples: "Uncharted, Tomb Raider, Zelda",
-  },
-  {
-    id: "rpg",
-    name: "RPG",
-    icon: Dice6,
-    examples: "Witcher 3, Skyrim, Final Fantasy",
-  },
-  {
-    id: "strategy",
-    name: "Strategy",
-    icon: Crown,
-    examples: "Civilization, StarCraft, Age of Empires",
-  },
-  {
-    id: "simulation",
-    name: "Simulation",
-    icon: Settings,
-    examples: "Cities Skylines, The Sims, Euro Truck",
-  },
-  {
-    id: "sports",
-    name: "Sports",
-    icon: Zap,
-    examples: "FIFA, NBA 2K, Rocket League",
-  },
-  {
-    id: "racing",
-    name: "Racing",
-    icon: Car,
-    examples: "Forza, Gran Turismo, Need for Speed",
-  },
-  {
-    id: "horror",
-    name: "Horror",
-    icon: Ghost,
-    examples: "Resident Evil, Silent Hill, Dead Space",
-  },
-  {
-    id: "puzzle",
-    name: "Puzzle",
-    icon: Puzzle,
-    examples: "Portal, Tetris, Monument Valley",
-  },
-  {
-    id: "shooter",
-    name: "Shooter",
-    icon: Crosshair,
-    examples: "Counter-Strike, Overwatch, Valorant",
-  },
-];
-
-// Mock user data (you'll replace this with your API)
-const mockUserData = {
-  id: "user123",
-  username: "GamerPro2024",
-  email: "gamer@example.com",
-  avatar: "/placeholder.svg?height=120&width=120",
-  joinDate: "2024-01-15",
-  authProvider: "google", // "email", "google", "steam", "discord", "xbox"
-  favoriteGenres: ["action", "rpg"], // Some users might have empty array if registered via OAuth
-  stats: {
-    gamesOwned: 47,
-    hoursPlayed: 1250,
-    achievementsUnlocked: 342,
-  },
-};
-
 const ProfilePage = () => {
   // Form state
-  const [userData, setUserData] = useState(mockUserData);
+  const [userData, setUserData] = useState({
+    id: null,
+    username: "",
+    email: "",
+    createdAt: "",
+    genres: [], // Changed from Genres to genres to match API
+  });
+
   const [formData, setFormData] = useState({
+    username: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    favoriteGenres: mockUserData.favoriteGenres,
+    selectedGenreIds: [],
   });
+
+  const [availableGenres, setAvailableGenres] = useState([]);
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingUser, setIsFetchingUser] = useState(true);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -134,6 +53,86 @@ const ProfilePage = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   const genreDropdownRef = useRef(null);
+
+  // Fetch user data
+  const fetchUserData = async () => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+
+      if (!authToken) {
+        setErrors({ general: "No authentication token found" });
+        setIsFetchingUser(false);
+        return;
+      }
+
+      let userId;
+      try {
+        const decoded = jwtDecode(authToken);
+        userId = decoded.id || decoded.userId;
+      } catch (decodeError) {
+        console.error("Error decoding token:", decodeError);
+        setErrors({ general: "Invalid authentication token" });
+        setIsFetchingUser(false);
+        return;
+      }
+
+      const response = await axios.get(
+        `http://localhost:3000/users/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      const user = response.data;
+
+      setUserData({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        createdAt: user.createdAt,
+        genres: user.genres || [], // Changed to lowercase to match API
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        username: user.username,
+        selectedGenreIds: user.genres ? user.genres.map((g) => g.id) : [],
+      }));
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+
+      if (error.response?.status === 401) {
+        setErrors({ general: "Session expired. Please login again." });
+        // Optionally redirect to login
+        // window.location.href = '/login';
+      } else if (error.response?.status === 404) {
+        setErrors({ general: "User not found" });
+      } else {
+        setErrors({ general: "Failed to load user data. Please try again." });
+      }
+    } finally {
+      setIsFetchingUser(false);
+    }
+  };
+
+  // Fetch genres
+  const fetchGenres = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/games/genre");
+      setAvailableGenres(response.data);
+    } catch (error) {
+      console.error("Error fetching genres:", error);
+      setErrors({ genres: "Failed to load genres" });
+    }
+  };
+
+  // Initialize data
+  useEffect(() => {
+    fetchUserData();
+    fetchGenres();
+  }, []);
 
   // Initialize form animation
   useEffect(() => {
@@ -186,125 +185,74 @@ const ProfilePage = () => {
   // Handle genre selection
   const handleGenreToggle = (genreId) => {
     setFormData((prev) => {
-      const currentGenres = prev.favoriteGenres;
+      const currentGenres = prev.selectedGenreIds;
       if (currentGenres.includes(genreId)) {
         return {
           ...prev,
-          favoriteGenres: currentGenres.filter((id) => id !== genreId),
+          selectedGenreIds: currentGenres.filter((id) => id !== genreId),
         };
       } else if (currentGenres.length < 3) {
-        return { ...prev, favoriteGenres: [...currentGenres, genreId] };
+        return { ...prev, selectedGenreIds: [...currentGenres, genreId] };
       }
       return prev;
     });
   };
 
-  // Validate password form
-  const validatePasswordForm = () => {
-    const newErrors = {};
-
-    if (!formData.currentPassword) {
-      newErrors.currentPassword = "Current password is required";
-    }
-
-    if (!formData.newPassword) {
-      newErrors.newPassword = "New password is required";
-    } else if (passwordStrength < 3) {
-      newErrors.newPassword = "Password is too weak";
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    if (formData.currentPassword === formData.newPassword) {
-      newErrors.newPassword =
-        "New password must be different from current password";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Handle password change
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-
-    if (!validatePasswordForm()) {
-      return;
-    }
-
+  // Update user profile
+  const handleUpdateProfile = async () => {
     setIsLoading(true);
+    setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const authToken = localStorage.getItem("authToken");
 
-      // Success
-      setSuccessMessage("Password updated successfully!");
-      setFormData((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-      setIsEditingPassword(false);
-      setPasswordStrength(0);
+      if (!authToken) {
+        setErrors({ general: "No authentication token found" });
+        return;
+      }
 
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (error) {
-      setErrors({ general: "Failed to update password. Please try again." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      const updateData = {
+        username: formData.username,
+        genres: formData.selectedGenreIds,
+      };
 
-  // Handle genre update
-  const handleGenreUpdate = async () => {
-    setIsLoading(true);
+      const response = await axios.put(
+        `http://localhost:3000/users/${userData.id}`,
+        updateData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Fetch updated user data to ensure we have the latest info
+      await fetchUserData();
 
-      // Update user data
-      setUserData((prev) => ({
-        ...prev,
-        favoriteGenres: formData.favoriteGenres,
-      }));
-
-      setSuccessMessage("Favorite genres updated successfully!");
+      setSuccessMessage("Profile updated successfully!");
       setIsEditingGenres(false);
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
-      setErrors({ genres: "Failed to update genres. Please try again." });
+      console.error("Error updating profile:", error);
+      if (error.response?.status === 401) {
+        setErrors({ general: "Session expired. Please login again." });
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: "Failed to update profile. Please try again." });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   // Cancel editing
-  const cancelPasswordEdit = () => {
-    setFormData((prev) => ({
-      ...prev,
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    }));
-    setIsEditingPassword(false);
-    setPasswordStrength(0);
-    setErrors({});
-  };
-
   const cancelGenreEdit = () => {
     setFormData((prev) => ({
       ...prev,
-      favoriteGenres: userData.favoriteGenres,
+      selectedGenreIds: userData.genres.map((g) => g.id),
     }));
     setIsEditingGenres(false);
     setErrors({});
@@ -322,28 +270,46 @@ const ProfilePage = () => {
     return strengthLevels[passwordStrength] || strengthLevels[0];
   };
 
-  // Get auth provider display name
-  const getAuthProviderName = (provider) => {
-    const providers = {
-      email: "Email",
-      google: "Google",
-      steam: "Steam",
-      discord: "Discord",
-      xbox: "Xbox",
-    };
-    return providers[provider] || "Unknown";
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
-  // Check if user needs to set favorite genres
-  const needsGenreSetup = userData.favoriteGenres.length === 0;
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = () => {
+    const usernameChanged = formData.username !== userData.username;
+    const genresChanged =
+      JSON.stringify(formData.selectedGenreIds.sort()) !==
+      JSON.stringify(userData.genres.map((g) => g.id).sort());
+    return usernameChanged || genresChanged;
+  };
+
+  if (isFetchingUser) {
+    return (
+      <div className={styles.profilePage}>
+        <div className={styles.backgroundMesh} />
+        <div className={styles.mainSection}>
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner} />
+            <p>Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.profilePage}>
       {/* Animated Background Mesh */}
       <div className={styles.backgroundMesh} />
 
-      {/* Left Section - Profile Form */}
-      <div className={styles.leftSection}>
+      {/* Centered Form Container */}
+      <div className={styles.mainSection}>
         <div
           className={`${styles.formContainer} ${
             isFormVisible ? styles.visible : ""
@@ -368,25 +334,27 @@ const ProfilePage = () => {
             </div>
           )}
 
+          {/* Error Message */}
+          {errors.general && (
+            <div className={styles.errorBanner}>
+              <X className={styles.errorIcon} />
+              {errors.general}
+            </div>
+          )}
+
           {/* Profile Form */}
           <div className={styles.form}>
             {/* Profile Picture Section */}
             <div className={styles.profilePictureSection}>
               <div className={styles.avatarContainer}>
-                <img
-                  src={userData.avatar || "/placeholder.svg"}
-                  alt="Profile"
-                  className={styles.avatar}
-                />
-                <button className={styles.avatarEditButton}>
-                  <Camera size={16} />
-                </button>
+                <div className={styles.defaultAvatar}>
+                  <User size={32} />
+                </div>
               </div>
               <div className={styles.userInfo}>
                 <h3 className={styles.displayName}>{userData.username}</h3>
                 <p className={styles.joinDate}>
-                  Member since{" "}
-                  {new Date(userData.joinDate).toLocaleDateString()}
+                  Member since {formatDate(userData.createdAt)}
                 </p>
               </div>
             </div>
@@ -395,21 +363,21 @@ const ProfilePage = () => {
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>Account Information</h3>
 
-              {/* Username (Read-only) */}
+              {/* Username (Always Editable) */}
               <div className={styles.fieldGroup}>
                 <label className={styles.label}>
                   <User className={styles.labelIcon} />
                   Username
                 </label>
-                <div className={styles.readOnlyField}>
-                  <input
-                    type="text"
-                    value={userData.username}
-                    className={styles.readOnlyInput}
-                    readOnly
-                  />
-                  <span className={styles.readOnlyBadge}>Read-only</span>
-                </div>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) =>
+                    handleInputChange("username", e.target.value)
+                  }
+                  className={styles.input}
+                  placeholder="Enter username"
+                />
               </div>
 
               {/* Email (Read-only) */}
@@ -425,219 +393,17 @@ const ProfilePage = () => {
                     className={styles.readOnlyInput}
                     readOnly
                   />
-                  <span className={styles.authProviderBadge}>
-                    Signed in with {getAuthProviderName(userData.authProvider)}
-                  </span>
+                  <span className={styles.readOnlyBadge}>Read-only</span>
                 </div>
               </div>
             </div>
-
-            {/* Password Section (only for email auth) */}
-            {userData.authProvider === "email" && (
-              <div className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <h3 className={styles.sectionTitle}>
-                    <Lock className={styles.sectionIcon} />
-                    Password
-                  </h3>
-                  {!isEditingPassword && (
-                    <button
-                      className={styles.editButton}
-                      onClick={() => setIsEditingPassword(true)}
-                    >
-                      <Edit3 size={16} />
-                      Change Password
-                    </button>
-                  )}
-                </div>
-
-                {isEditingPassword ? (
-                  <form
-                    onSubmit={handlePasswordChange}
-                    className={styles.passwordForm}
-                  >
-                    {/* Current Password */}
-                    <div className={styles.fieldGroup}>
-                      <label className={styles.label} htmlFor="currentPassword">
-                        Current Password
-                      </label>
-                      <div className={styles.inputContainer}>
-                        <input
-                          id="currentPassword"
-                          type={showCurrentPassword ? "text" : "password"}
-                          className={styles.input}
-                          placeholder="Enter current password"
-                          value={formData.currentPassword}
-                          onChange={(e) =>
-                            handleInputChange("currentPassword", e.target.value)
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.passwordToggle}
-                          onClick={() =>
-                            setShowCurrentPassword(!showCurrentPassword)
-                          }
-                        >
-                          {showCurrentPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
-                      </div>
-                      {errors.currentPassword && (
-                        <span className={styles.errorMessage}>
-                          {errors.currentPassword}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* New Password */}
-                    <div className={styles.fieldGroup}>
-                      <label className={styles.label} htmlFor="newPassword">
-                        New Password
-                      </label>
-                      <div className={styles.inputContainer}>
-                        <input
-                          id="newPassword"
-                          type={showNewPassword ? "text" : "password"}
-                          className={styles.input}
-                          placeholder="Enter new password"
-                          value={formData.newPassword}
-                          onChange={(e) =>
-                            handleInputChange("newPassword", e.target.value)
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.passwordToggle}
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                        >
-                          {showNewPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Password Strength Indicator */}
-                      {formData.newPassword && (
-                        <div className={styles.passwordStrength}>
-                          <div className={styles.strengthBar}>
-                            {[...Array(4)].map((_, i) => (
-                              <div
-                                key={i}
-                                className={`${styles.strengthSegment} ${
-                                  i < passwordStrength ? styles.filled : ""
-                                }`}
-                                style={{
-                                  backgroundColor:
-                                    i < passwordStrength
-                                      ? getPasswordStrengthInfo().color
-                                      : undefined,
-                                }}
-                              />
-                            ))}
-                          </div>
-                          <span
-                            className={styles.strengthText}
-                            style={{ color: getPasswordStrengthInfo().color }}
-                          >
-                            {getPasswordStrengthInfo().text}
-                          </span>
-                        </div>
-                      )}
-
-                      {errors.newPassword && (
-                        <span className={styles.errorMessage}>
-                          {errors.newPassword}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className={styles.fieldGroup}>
-                      <label className={styles.label} htmlFor="confirmPassword">
-                        Confirm New Password
-                      </label>
-                      <div className={styles.inputContainer}>
-                        <input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          className={styles.input}
-                          placeholder="Confirm new password"
-                          value={formData.confirmPassword}
-                          onChange={(e) =>
-                            handleInputChange("confirmPassword", e.target.value)
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.passwordToggle}
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
-                      </div>
-                      {errors.confirmPassword && (
-                        <span className={styles.errorMessage}>
-                          {errors.confirmPassword}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Password Form Actions */}
-                    <div className={styles.formActions}>
-                      <button
-                        type="button"
-                        className={styles.cancelButton}
-                        onClick={cancelPasswordEdit}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className={styles.saveButton}
-                        disabled={
-                          isLoading ||
-                          !formData.currentPassword ||
-                          !formData.newPassword ||
-                          !formData.confirmPassword
-                        }
-                      >
-                        {isLoading ? (
-                          <div className={styles.spinner} />
-                        ) : (
-                          <Save size={16} />
-                        )}
-                        {isLoading ? "Updating..." : "Update Password"}
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className={styles.passwordDisplay}>
-                    <p className={styles.passwordInfo}>
-                      Password was last updated on January 15, 2024
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Favorite Genres Section */}
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <h3 className={styles.sectionTitle}>
                   Favorite Genres
-                  {needsGenreSetup && (
+                  {userData.genres.length === 0 && (
                     <span className={styles.setupRequired}>Setup Required</span>
                   )}
                 </h3>
@@ -647,12 +413,14 @@ const ProfilePage = () => {
                     onClick={() => setIsEditingGenres(true)}
                   >
                     <Edit3 size={16} />
-                    {needsGenreSetup ? "Set Genres" : "Edit Genres"}
+                    {userData.genres.length === 0
+                      ? "Set Genres"
+                      : "Edit Genres"}
                   </button>
                 )}
               </div>
 
-              {needsGenreSetup && !isEditingGenres && (
+              {userData.genres.length === 0 && !isEditingGenres && (
                 <div className={styles.setupPrompt}>
                   <Info className={styles.setupIcon} />
                   <div>
@@ -676,10 +444,10 @@ const ProfilePage = () => {
                       onClick={() => setShowGenreDropdown(!showGenreDropdown)}
                     >
                       <span>
-                        {formData.favoriteGenres.length === 0
+                        {formData.selectedGenreIds.length === 0
                           ? "Select up to 3 genres"
-                          : `${formData.favoriteGenres.length} genre${
-                              formData.favoriteGenres.length > 1 ? "s" : ""
+                          : `${formData.selectedGenreIds.length} genre${
+                              formData.selectedGenreIds.length > 1 ? "s" : ""
                             } selected`}
                       </span>
                       <ChevronDown className={styles.chevronIcon} />
@@ -687,13 +455,13 @@ const ProfilePage = () => {
 
                     {showGenreDropdown && (
                       <div className={styles.genreDropdown}>
-                        {genres.map((genre) => {
-                          const IconComponent = genre.icon;
-                          const isSelected = formData.favoriteGenres.includes(
+                        {availableGenres.map((genre) => {
+                          const isSelected = formData.selectedGenreIds.includes(
                             genre.id
                           );
                           const isDisabled =
-                            !isSelected && formData.favoriteGenres.length >= 3;
+                            !isSelected &&
+                            formData.selectedGenreIds.length >= 3;
 
                           return (
                             <button
@@ -708,14 +476,8 @@ const ProfilePage = () => {
                               disabled={isDisabled}
                             >
                               <div className={styles.genreInfo}>
-                                <div className={styles.genreHeader}>
-                                  <IconComponent className={styles.genreIcon} />
-                                  <span className={styles.genreName}>
-                                    {genre.name}
-                                  </span>
-                                </div>
-                                <span className={styles.genreExamples}>
-                                  {genre.examples}
+                                <span className={styles.genreName}>
+                                  {genre.name}
                                 </span>
                               </div>
                               {isSelected && (
@@ -729,14 +491,14 @@ const ProfilePage = () => {
                   </div>
 
                   {/* Selected Genres Tags */}
-                  {formData.favoriteGenres.length > 0 && (
+                  {formData.selectedGenreIds.length > 0 && (
                     <div className={styles.selectedGenres}>
-                      {formData.favoriteGenres.map((genreId) => {
-                        const genre = genres.find((g) => g.id === genreId);
-                        const IconComponent = genre.icon;
-                        return (
+                      {formData.selectedGenreIds.map((genreId) => {
+                        const genre = availableGenres.find(
+                          (g) => g.id === genreId
+                        );
+                        return genre ? (
                           <div key={genreId} className={styles.genreTag}>
-                            <IconComponent className={styles.tagIcon} />
                             <span>{genre.name}</span>
                             <button
                               type="button"
@@ -746,7 +508,7 @@ const ProfilePage = () => {
                               <X size={14} />
                             </button>
                           </div>
-                        );
+                        ) : null;
                       })}
                     </div>
                   )}
@@ -764,37 +526,17 @@ const ProfilePage = () => {
                     >
                       Cancel
                     </button>
-                    <button
-                      type="button"
-                      className={styles.saveButton}
-                      onClick={handleGenreUpdate}
-                      disabled={
-                        isLoading || formData.favoriteGenres.length === 0
-                      }
-                    >
-                      {isLoading ? (
-                        <div className={styles.spinner} />
-                      ) : (
-                        <Save size={16} />
-                      )}
-                      {isLoading ? "Saving..." : "Save Genres"}
-                    </button>
                   </div>
                 </div>
               ) : (
                 <div className={styles.genreDisplay}>
-                  {userData.favoriteGenres.length > 0 ? (
+                  {userData.genres && userData.genres.length > 0 ? (
                     <div className={styles.currentGenres}>
-                      {userData.favoriteGenres.map((genreId) => {
-                        const genre = genres.find((g) => g.id === genreId);
-                        const IconComponent = genre.icon;
-                        return (
-                          <div key={genreId} className={styles.currentGenreTag}>
-                            <IconComponent className={styles.currentTagIcon} />
-                            <span>{genre.name}</span>
-                          </div>
-                        );
-                      })}
+                      {userData.genres.map((genre) => (
+                        <div key={genre.id} className={styles.currentGenreTag}>
+                          <span>{genre.name}</span>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <p className={styles.noGenres}>
@@ -805,73 +547,29 @@ const ProfilePage = () => {
               )}
             </div>
 
-            {/* Gaming Stats */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Gaming Stats</h3>
-              <div className={styles.statsGrid}>
-                <div className={styles.statCard}>
-                  <div className={styles.statValue}>
-                    {userData.stats.gamesOwned}
-                  </div>
-                  <div className={styles.statLabel}>Games Owned</div>
-                </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statValue}>
-                    {userData.stats.hoursPlayed.toLocaleString()}
-                  </div>
-                  <div className={styles.statLabel}>Hours Played</div>
-                </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statValue}>
-                    {userData.stats.achievementsUnlocked}
-                  </div>
-                  <div className={styles.statLabel}>Achievements</div>
-                </div>
+            {/* Update Button */}
+            {hasUnsavedChanges() && (
+              <div className={styles.updateSection}>
+                <button
+                  type="button"
+                  className={styles.updateButton}
+                  onClick={handleUpdateProfile}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className={styles.spinner} />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      Update Profile
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Section - Visual */}
-      <div className={styles.rightSection}>
-        <div className={styles.visualContent}>
-          <div className={styles.profileVisual}>
-            <h3 className={styles.visualTitle}>Your Gaming Journey</h3>
-            <p className={styles.visualSubtitle}>
-              Customize your profile to get better game recommendations
-            </p>
-
-            {/* Achievement Showcase */}
-            <div className={styles.achievementShowcase}>
-              <div className={styles.achievement}>
-                <div className={styles.achievementIcon}>🏆</div>
-                <div className={styles.achievementText}>
-                  <div className={styles.achievementTitle}>Profile Master</div>
-                  <div className={styles.achievementDesc}>
-                    Complete your profile setup
-                  </div>
-                </div>
-              </div>
-              <div className={styles.achievement}>
-                <div className={styles.achievementIcon}>🎮</div>
-                <div className={styles.achievementText}>
-                  <div className={styles.achievementTitle}>Game Explorer</div>
-                  <div className={styles.achievementDesc}>
-                    Discover games across multiple genres
-                  </div>
-                </div>
-              </div>
-              <div className={styles.achievement}>
-                <div className={styles.achievementIcon}>🔒</div>
-                <div className={styles.achievementText}>
-                  <div className={styles.achievementTitle}>Security Pro</div>
-                  <div className={styles.achievementDesc}>
-                    Keep your account secure
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

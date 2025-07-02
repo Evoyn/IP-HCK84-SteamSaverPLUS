@@ -5,6 +5,7 @@ import axios from "axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./TopDiscounts.module.css";
 import WishlistIcon from "./WishlistIcon";
+import { Link } from "react-router";
 
 const Recommendations = () => {
   const [games, setGames] = useState([]);
@@ -153,22 +154,43 @@ const Recommendations = () => {
           }}
         >
           <p>{error}</p>
-          <button
-            onClick={handleRetry}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
-          >
-            Try Again
-          </button>
+          {!authToken ? (
+            <Link
+              to="/login"
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "14px",
+                textDecoration: "none",
+                display: "inline-block",
+              }}
+              onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
+              onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
+            >
+              Login
+            </Link>
+          ) : (
+            <button
+              onClick={handleRetry}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "14px",
+              }}
+              onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
+              onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
+            >
+              Try Again
+            </button>
+          )}
         </div>
       </section>
     );
