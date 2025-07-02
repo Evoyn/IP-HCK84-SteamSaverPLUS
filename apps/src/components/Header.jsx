@@ -72,10 +72,10 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className={styles.desktopNav}>
-          {/* <Link to="/discover" className={styles.navButton}>
+          <Link to="/discover" className={styles.navButton}>
             <Compass className={styles.navIcon} />
             <span>Discover</span>
-          </Link> */}
+          </Link>
 
           {authToken ? (
             <>
@@ -107,10 +107,10 @@ const Header = () => {
                 </div>
                 <span>Wishlist</span>
               </Link>
-              {/* <Link to="/profile" className={styles.navButton}>
+              <Link to="/profile" className={styles.navButton}>
                 <User className={styles.navIcon} />
                 <span>Profile</span>
-              </Link> */}
+              </Link>
               <Link
                 to="/login"
                 className={styles.signInButton}
@@ -143,10 +143,10 @@ const Header = () => {
 
       {isMobileMenuOpen && (
         <div className={styles.mobileNav}>
-          {/* <Link to="/discover" className={styles.mobileNavButton}>
+          <Link to="/discover" className={styles.mobileNavButton}>
             <Compass className={styles.navIcon} />
             <span>Discover</span>
-          </Link> */}
+          </Link>
 
           {authToken ? (
             <>
@@ -182,10 +182,10 @@ const Header = () => {
                   <span>Wishlist</span>
                 </div>
               </Link>
-              {/* <Link to="/profile" className={styles.mobileNavButton}>
+              <Link to="/profile" className={styles.mobileNavButton}>
                 <User className={styles.navIcon} />
                 <span>Profile</span>
-              </Link> */}
+              </Link>
               <Link
                 to="/login"
                 className={styles.mobileSignInButton}

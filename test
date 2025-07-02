@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
-import axios from "axios";
 import {
   Search,
   Filter,
@@ -15,6 +14,8 @@ import {
   Star,
   Calendar,
   Tag,
+  Grid3X3,
+  List,
 } from "lucide-react";
 import styles from "./Discover.module.css";
 
@@ -36,25 +37,35 @@ const DiscoverPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingGenres, setIsLoadingGenres] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("All Genres");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalGames, setTotalGames] = useState(0);
+  const [viewMode, setViewMode] = useState("grid");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showGenreDropdown, setShowGenreDropdown] = useState(false);
   const [error, setError] = useState(null);
   const [expandedGenres, setExpandedGenres] = useState(new Set());
   const [groupedGames, setGroupedGames] = useState({});
 
   const searchInputRef = useRef(null);
   const sortDropdownRef = useRef(null);
+  const genreDropdownRef = useRef(null);
 
   // Fetch genres
   useEffect(() => {
     const fetchGenres = async () => {
       try {
         setIsLoadingGenres(true);
-        const response = await axios.get("http://localhost:3000/games/genre");
-        setGenres(response.data);
+        const response = await fetch("http://localhost:3000/games/genre");
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setGenres(data);
       } catch (err) {
         console.error("Error fetching genres:", err);
         setError("Failed to load genres");
@@ -73,19 +84,27 @@ const DiscoverPage = () => {
         setIsLoading(true);
         setError(null);
 
-        const params = {
-          page: currentPage,
-        };
+        // Construct URL with pagination
+        const url = new URL("http://localhost:3000/pub-games");
+        url.searchParams.append("page", currentPage);
+
+        // Add genre filter if selected
+        if (selectedGenre !== "All Genres") {
+          url.searchParams.append("genre", selectedGenre);
+        }
 
         // Add search query if present
         if (searchQuery.trim()) {
-          params.search = searchQuery.trim();
+          url.searchParams.append("search", searchQuery.trim());
         }
 
-        const response = await axios.get("http://localhost:3000/pub-games", {
-          params,
-        });
-        const data = response.data;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
 
         // Update state with API response
         setGames(data.data || []);
@@ -131,7 +150,8 @@ const DiscoverPage = () => {
           });
 
           setGroupedGames(grouped);
-          // Expand all genres by default when switching to genre view
+
+          // Expand all genres by default when first grouping
           setExpandedGenres(new Set(Object.keys(grouped)));
         }
       } catch (err) {
@@ -145,7 +165,7 @@ const DiscoverPage = () => {
     };
 
     fetchGames();
-  }, [currentPage, searchQuery, sortBy]);
+  }, [currentPage, selectedGenre, searchQuery, sortBy]);
 
   // Handle search with debounce
   const debounceTimer = useRef(null);
@@ -176,30 +196,17 @@ const DiscoverPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Handle genre change
+  const handleGenreChange = (genre) => {
+    setSelectedGenre(genre);
+    setCurrentPage(1);
+    setShowGenreDropdown(false);
+  };
+
   // Handle sort change
   const handleSortChange = (sort) => {
     setSortBy(sort);
     setShowSortDropdown(false);
-  };
-
-  // Toggle all genres
-  const toggleAllGenres = (expand) => {
-    if (expand) {
-      setExpandedGenres(new Set(Object.keys(groupedGames)));
-    } else {
-      setExpandedGenres(new Set());
-    }
-  };
-
-  // Toggle genre expansion
-  const toggleGenre = (genre) => {
-    const newExpanded = new Set(expandedGenres);
-    if (newExpanded.has(genre)) {
-      newExpanded.delete(genre);
-    } else {
-      newExpanded.add(genre);
-    }
-    setExpandedGenres(newExpanded);
   };
 
   // Close dropdowns when clicking outside
@@ -210,6 +217,12 @@ const DiscoverPage = () => {
         !sortDropdownRef.current.contains(event.target)
       ) {
         setShowSortDropdown(false);
+      }
+      if (
+        genreDropdownRef.current &&
+        !genreDropdownRef.current.contains(event.target)
+      ) {
+        setShowGenreDropdown(false);
       }
     };
 
@@ -225,6 +238,26 @@ const DiscoverPage = () => {
       }
     };
   }, []);
+
+  // Toggle genre expansion
+  const toggleGenre = (genre) => {
+    const newExpanded = new Set(expandedGenres);
+    if (newExpanded.has(genre)) {
+      newExpanded.delete(genre);
+    } else {
+      newExpanded.add(genre);
+    }
+    setExpandedGenres(newExpanded);
+  };
+
+  // Expand/Collapse all genres
+  const toggleAllGenres = (expand) => {
+    if (expand) {
+      setExpandedGenres(new Set(Object.keys(groupedGames)));
+    } else {
+      setExpandedGenres(new Set());
+    }
+  };
 
   if (isLoading && games.length === 0) {
     return <DiscoverSkeleton />;
@@ -261,6 +294,28 @@ const DiscoverPage = () => {
               free-to-play titles
             </p>
           </div>
+
+          {/* View Mode Toggle */}
+          <div className={styles.viewToggle}>
+            <button
+              className={`${styles.viewButton} ${
+                viewMode === "grid" ? styles.active : ""
+              }`}
+              onClick={() => setViewMode("grid")}
+              aria-label="Grid view"
+            >
+              <Grid3X3 size={20} />
+            </button>
+            <button
+              className={`${styles.viewButton} ${
+                viewMode === "list" ? styles.active : ""
+              }`}
+              onClick={() => setViewMode("list")}
+              aria-label="List view"
+            >
+              <List size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -285,6 +340,45 @@ const DiscoverPage = () => {
 
           {/* Filters Row */}
           <div className={styles.filtersRow}>
+            {/* Genre Filter */}
+            <div className={styles.filterGroup} ref={genreDropdownRef}>
+              <button
+                className={`${styles.filterButton} ${
+                  showGenreDropdown ? styles.active : ""
+                }`}
+                onClick={() => setShowGenreDropdown(!showGenreDropdown)}
+                disabled={isLoadingGenres}
+              >
+                <Filter size={16} />
+                {selectedGenre}
+                <ChevronDown className={styles.chevronIcon} />
+              </button>
+
+              {showGenreDropdown && !isLoadingGenres && (
+                <div className={styles.dropdown}>
+                  <button
+                    className={`${styles.dropdownItem} ${
+                      selectedGenre === "All Genres" ? styles.selected : ""
+                    }`}
+                    onClick={() => handleGenreChange("All Genres")}
+                  >
+                    All Genres
+                  </button>
+                  {genres.map((genre) => (
+                    <button
+                      key={genre.id}
+                      className={`${styles.dropdownItem} ${
+                        selectedGenre === genre.name ? styles.selected : ""
+                      }`}
+                      onClick={() => handleGenreChange(genre.name)}
+                    >
+                      {genre.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Sort Filter */}
             <div className={styles.filterGroup} ref={sortDropdownRef}>
               <button
@@ -346,7 +440,7 @@ const DiscoverPage = () => {
           </div>
         </div>
 
-        {/* Games Grid */}
+        {/* Games Grid/List */}
         {sortBy === "genre" && !isLoading ? (
           <div className={styles.genreGroupsContainer}>
             {Object.entries(groupedGames)
@@ -372,9 +466,18 @@ const DiscoverPage = () => {
                   </button>
 
                   {expandedGenres.has(genre) && (
-                    <div className={styles.gamesContainer}>
+                    <div
+                      className={`${styles.gamesContainer} ${
+                        viewMode === "list" ? styles.listView : styles.gridView
+                      }`}
+                    >
                       {gamesInGenre.map((game, index) => (
-                        <GameCard key={game.id} game={game} index={index} />
+                        <GameCard
+                          key={game.id}
+                          game={game}
+                          viewMode={viewMode}
+                          index={index}
+                        />
                       ))}
                     </div>
                   )}
@@ -382,14 +485,23 @@ const DiscoverPage = () => {
               ))}
           </div>
         ) : (
-          <div className={styles.gamesContainer}>
+          <div
+            className={`${styles.gamesContainer} ${
+              viewMode === "list" ? styles.listView : styles.gridView
+            }`}
+          >
             {isLoading ? (
               [...Array(ITEMS_PER_PAGE)].map((_, i) => (
                 <div key={i} className={styles.skeletonCard} />
               ))
             ) : filteredGames.length > 0 ? (
               filteredGames.map((game, index) => (
-                <GameCard key={game.id} game={game} index={index} />
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  viewMode={viewMode}
+                  index={index}
+                />
               ))
             ) : (
               <div className={styles.noResults}>
@@ -400,6 +512,7 @@ const DiscoverPage = () => {
                   className={styles.clearFiltersButton}
                   onClick={() => {
                     setSearchQuery("");
+                    setSelectedGenre("All Genres");
                     setSortBy("newest");
                     setCurrentPage(1);
                   }}
@@ -470,7 +583,7 @@ const DiscoverPage = () => {
 };
 
 // Game Card Component
-const GameCard = ({ game, index }) => {
+const GameCard = ({ game, viewMode, index }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -503,7 +616,9 @@ const GameCard = ({ game, index }) => {
 
   return (
     <div
-      className={styles.gameCard}
+      className={`${styles.gameCard} ${
+        viewMode === "list" ? styles.listCard : ""
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{ animationDelay: `${index * 0.05}s` }}
@@ -554,10 +669,16 @@ const GameCard = ({ game, index }) => {
       <div className={styles.cardContent}>
         <div className={styles.cardHeader}>
           <span className={styles.category}>{game.genre}</span>
-          <span className={styles.category}>{game.platform}</span>
+          <div className={styles.rating}>
+            <span className={styles.category}>{game.platform}</span>
+          </div>
         </div>
 
         <h3 className={styles.gameTitle}>{game.title}</h3>
+
+        {viewMode === "list" && (
+          <p className={styles.gameDescription}>{game.short_description}</p>
+        )}
 
         <div className={styles.priceSection}>
           <div className={styles.freePrice}>Free to Play</div>
@@ -568,9 +689,11 @@ const GameCard = ({ game, index }) => {
           </div>
         </div>
 
-        <div className={styles.publisherInfo}>
-          <span className={styles.category}>Publisher: {game.publisher}</span>
-        </div>
+        {viewMode === "grid" && (
+          <div className={styles.publisherInfo}>
+            <span className={styles.category}>Publisher: {game.publisher}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -590,6 +713,7 @@ const DiscoverSkeleton = () => (
       <div className={styles.searchSection}>
         <div className={styles.skeletonSearch} />
         <div className={styles.filtersRow}>
+          <div className={styles.skeletonFilter} />
           <div className={styles.skeletonFilter} />
         </div>
       </div>

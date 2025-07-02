@@ -3,6 +3,7 @@ const { comparePassword } = require("../helpers/bcrypt");
 const { signToken } = require("../helpers/jwt");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const { Op } = require("sequelize");
 
 module.exports = class UserController {
   static async register(req, res, next) {
@@ -142,6 +143,164 @@ module.exports = class UserController {
       res.status(200).json({ Login: "Google login successful", access_token });
     } catch (err) {
       console.log("GOOGLE LOGIN ERROR:", err);
+      next(err);
+    }
+  }
+
+  static async updateUser(req, res, next) {
+    try {
+      const { id } = req.params; // User ID from URL params
+      const { username, genres } = req.body;
+
+      // Find the user
+      const user = await User.findByPk(id);
+      if (!user) {
+        throw { name: "NotFound", message: "User not found" };
+      }
+
+      // Check if the logged-in user is updating their own profile
+      // Assuming req.user is set by authentication middleware
+      if (req.user.id !== parseInt(id)) {
+        throw {
+          name: "Forbidden",
+          message: "You can only update your own profile",
+        };
+      }
+
+      // Update username if provided
+      if (username) {
+        // Check if username is already taken by another user
+        const existingUsername = await User.findOne({
+          where: {
+            username,
+            id: { [Op.ne]: id }, // Exclude current user
+          },
+        });
+        if (existingUsername) {
+          throw { name: "BadRequest", message: "Username is already taken" };
+        }
+
+        await user.update({ username });
+      }
+
+      // Update genres if provided
+      if (genres !== undefined) {
+        // Validate genres
+        if (!Array.isArray(genres)) {
+          throw {
+            name: "BadRequest",
+            message: "Genres must be an array",
+          };
+        }
+
+        if (genres.length === 0) {
+          throw {
+            name: "BadRequest",
+            message: "At least 1 genre must be selected",
+          };
+        }
+
+        if (genres.length > 3) {
+          throw {
+            name: "BadRequest",
+            message: "You can only select up to 3 genres",
+          };
+        }
+
+        // Validate genre IDs (must be numbers between 1-18)
+        const validGenreIds = genres.every(
+          (id) => Number.isInteger(id) && id >= 1 && id <= 18
+        );
+
+        if (!validGenreIds) {
+          throw {
+            name: "BadRequest",
+            message: "Genre IDs must be numbers between 1 and 18",
+          };
+        }
+
+        // Verify genres exist in database
+        const foundGenres = await Genre.findAll({
+          where: {
+            id: genres,
+          },
+        });
+
+        if (foundGenres.length !== genres.length) {
+          throw { name: "BadRequest", message: "Some genre IDs are invalid" };
+        }
+
+        // Update user's genres (this will replace all existing associations)
+        await user.setGenres(genres);
+      }
+
+      // Fetch updated user with genres
+      const updatedUser = await User.findByPk(id, {
+        attributes: ["id", "username", "email"],
+        include: [
+          {
+            model: Genre,
+            attributes: ["id", "name"],
+            through: { attributes: [] }, // Exclude junction table attributes
+          },
+        ],
+      });
+
+      res.status(200).json({
+        message: "User updated successfully",
+        user: updatedUser,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getUserById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      // Validate ID
+      if (!id || isNaN(id)) {
+        throw { name: "BadRequest", message: "Invalid user ID" };
+      }
+
+      // Find user with genres
+      const user = await User.findByPk(id, {
+        attributes: ["id", "username", "email", "createdAt", "updatedAt"],
+        include: [
+          {
+            model: Genre,
+            attributes: ["id", "name"],
+            through: { attributes: [] }, // Exclude junction table attributes
+          },
+        ],
+      });
+
+      if (!user) {
+        throw { name: "NotFound", message: "User not found" };
+      }
+
+      // Check if user is requesting their own profile or is an admin
+      // For public profiles, you might want to exclude email
+      const isOwnProfile = req.user && req.user.id === parseInt(id);
+
+      // Format response based on access level
+      const userResponse = {
+        id: user.id,
+        username: user.username,
+        email: isOwnProfile ? user.email : undefined, // Only show email to profile owner
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        genres: user.Genres || [],
+      };
+
+      // Remove undefined fields
+      Object.keys(userResponse).forEach(
+        (key) => userResponse[key] === undefined && delete userResponse[key]
+      );
+
+      res.status(200).json(userResponse);
+    } catch (err) {
       next(err);
     }
   }
