@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_BASE_URL = "https://goat.nebux.site/";
+const API_BASE_URL = "https://goat.nebux.site";
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

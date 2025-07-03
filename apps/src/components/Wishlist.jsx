@@ -91,7 +91,7 @@ const Wishlist = () => {
 
       {error && (
         <div className={styles.errorBanner}>
-          <p>{error}</p>
+          <p>{error?.message}</p>
           <button
             onClick={() => dispatch(clearError())}
             className={styles.dismissButton}
