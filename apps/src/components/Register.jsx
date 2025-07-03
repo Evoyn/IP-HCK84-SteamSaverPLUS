@@ -124,7 +124,7 @@ const RegisterPage = () => {
         setGenresLoading(true);
         setGenresError(null);
 
-        const response = await fetch("http://localhost:3000/games/genre");
+        const response = await fetch("https://goat.nebux.site/games/genre");
 
         if (!response.ok) {
           throw new Error(`Failed to fetch genres: ${response.status}`);
@@ -147,8 +147,8 @@ const RegisterPage = () => {
         }));
 
         setGenres(transformedGenres);
-        console.log("Fetched genres:", transformedGenres); // Debug log
-        console.log("Raw genre data from API:", data); // See the actual API response
+        // console.log("Fetched genres:", transformedGenres); // Debug log
+        // console.log("Raw genre data from API:", data); // See the actual API response
       } catch (error) {
         console.error("Error fetching genres:", error);
         setGenresError("Failed to load genres. Please try again later.");
@@ -357,14 +357,14 @@ const RegisterPage = () => {
         }),
       };
 
-      console.log("Sending registration data:", requestBody); // Debug log
-      console.log("Selected genre IDs:", requestBody.genres); // Debug log
-      console.log(
-        "Genre IDs types:",
-        requestBody.genres.map((id) => typeof id)
-      ); // Check types
+      // console.log("Sending registration data:", requestBody); // Debug log
+      // console.log("Selected genre IDs:", requestBody.genres); // Debug log
+      // console.log(
+      //   "Genre IDs types:",
+      //   requestBody.genres.map((id) => typeof id)
+      // ); // Check types
 
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch("https://goat.nebux.site/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -387,7 +387,7 @@ const RegisterPage = () => {
         // Since you mentioned the data is saved in DB despite 500 error,
         // we'll treat this as a success but log the issue
         console.warn("Server returned 500 but registration may have succeeded");
-        console.log("Response data:", data);
+        // console.log("Response data:", data);
 
         // The 500 error might be from the genre association failing
         // Check if there's an error message about genres
@@ -421,7 +421,7 @@ const RegisterPage = () => {
 
       // Normal success case
       setRegistrationSuccess(true);
-      console.log("Registration successful:", data);
+      // console.log("Registration successful:", data);
 
       // Store auth token if returned
       if (data.token) {
@@ -433,7 +433,7 @@ const RegisterPage = () => {
         try {
           // Call separate endpoint to save user genres
           const genresResponse = await fetch(
-            "http://localhost:3000/user-genres",
+            "https://goat.nebux.site/user-genres",
             {
               method: "POST",
               headers: {
@@ -479,12 +479,15 @@ const RegisterPage = () => {
 
   // Handle Google credential response
   async function handleCredentialResponse(response) {
-    console.log("Encoded JWT ID token: " + response.credential);
+    // console.log("Encoded JWT ID token: " + response.credential);
 
     try {
-      const { data } = await axios.post("http://localhost:3000/login/google", {
-        googleToken: response.credential,
-      });
+      const { data } = await axios.post(
+        "https://goat.nebux.site/login/google",
+        {
+          googleToken: response.credential,
+        }
+      );
 
       // Store auth token
       if (data.access_token) {

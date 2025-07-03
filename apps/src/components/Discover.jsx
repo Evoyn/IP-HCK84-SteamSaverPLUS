@@ -53,7 +53,7 @@ const DiscoverPage = () => {
     const fetchGenres = async () => {
       try {
         setIsLoadingGenres(true);
-        const response = await axios.get("http://localhost:3000/games/genre");
+        const response = await axios.get("https://goat.nebux.site/games/genre");
         setGenres(response.data);
       } catch (err) {
         console.error("Error fetching genres:", err);
@@ -82,7 +82,7 @@ const DiscoverPage = () => {
           params.search = searchQuery.trim();
         }
 
-        const response = await axios.get("http://localhost:3000/pub-games", {
+        const response = await axios.get("https://goat.nebux.site/pub-games", {
           params,
         });
         const data = response.data;

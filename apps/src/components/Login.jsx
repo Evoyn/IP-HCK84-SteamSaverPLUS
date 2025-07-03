@@ -162,7 +162,7 @@ const LoginPage = () => {
     setApiError(null);
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
+      const response = await fetch("https://goat.nebux.site/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -231,12 +231,15 @@ const LoginPage = () => {
   }, []);
 
   async function handleCredentialResponse(response) {
-    console.log("Encoded JWT ID token: " + response.credential);
+    // console.log("Encoded JWT ID token: " + response.credential);
 
     try {
-      const { data } = await axios.post("http://localhost:3000/login/google", {
-        googleToken: response.credential,
-      });
+      const { data } = await axios.post(
+        "https://goat.nebux.site/login/google",
+        {
+          googleToken: response.credential,
+        }
+      );
 
       localStorage.setItem("authToken", data.access_token);
       setLoginSuccess(true);

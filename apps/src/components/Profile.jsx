@@ -77,7 +77,7 @@ const ProfilePage = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:3000/users/${userId}`,
+        `https://goat.nebux.site/users/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -120,7 +120,7 @@ const ProfilePage = () => {
   // Fetch genres
   const fetchGenres = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/games/genre");
+      const response = await axios.get("https://goat.nebux.site/games/genre");
       setAvailableGenres(response.data);
     } catch (error) {
       console.error("Error fetching genres:", error);
@@ -217,7 +217,7 @@ const ProfilePage = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:3000/users/${userData.id}`,
+        `https://goat.nebux.site/users/${userData.id}`,
         updateData,
         {
           headers: {

@@ -40,14 +40,14 @@ const Recommendations = () => {
           },
         });
 
-        console.log("Fetching recommendations...");
+        // console.log("Fetching recommendations...");
         const startTime = Date.now();
 
         const response = await axiosInstance.get(
-          "http://localhost:3000/recommendations"
+          "https://goat.nebux.site/recommendations"
         );
 
-        console.log(`Response received in ${Date.now() - startTime}ms`);
+        // console.log(`Response received in ${Date.now() - startTime}ms`);
 
         const recommended = response.data?.data?.recommendations || [];
         const limited = recommended.slice(0, 10);

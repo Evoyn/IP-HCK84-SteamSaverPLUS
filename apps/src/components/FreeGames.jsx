@@ -23,8 +23,7 @@ const TopDiscounts = ({ excludedDealIds = [] }) => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await axios.get("http://localhost:3000/pub-games");
-        console.log(response.data.data, "<<<<<<<<<<<<<<<<<");
+        const response = await axios.get("https://goat.nebux.site/pub-games");
 
         const shuffled = response.data.data
           .sort(() => Math.random() - 0.5) // Randomize
