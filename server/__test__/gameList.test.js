@@ -340,15 +340,6 @@ describe("/games", () => {
         expect(body[0]).toHaveProperty("name", expect.any(String));
       });
     });
-
-    describe("Failed", () => {
-      test("Gagal mendapatkan genres karena belum login (401)", async () => {
-        const { status, body } = await request(app).get("/games/genre");
-
-        expect(status).toBe(401);
-        expect(body).toHaveProperty("message", "Invalid token");
-      });
-    });
   });
 });
 

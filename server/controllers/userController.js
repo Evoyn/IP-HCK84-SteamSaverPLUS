@@ -53,7 +53,10 @@ module.exports = class UserController {
       });
 
       if (foundGenres.length !== genres.length) {
-        throw { name: "BadRequest", message: "Some genre IDs are invalid." };
+        throw {
+          name: "BadRequest",
+          message: "Genre IDs must be numbers between 1 and 18",
+        };
       }
 
       // Associate genres
