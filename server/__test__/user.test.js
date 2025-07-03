@@ -168,7 +168,10 @@ describe("/users", () => {
           });
 
         expect(status).toBe(400);
-        expect(body).toHaveProperty("message", "Some genre IDs are invalid.");
+        expect(body).toHaveProperty(
+          "message",
+          "Genre IDs must be numbers between 1 and 18"
+        );
       });
 
       //! email sudah terdaftar
@@ -470,6 +473,369 @@ describe("/users", () => {
 
         expect(status).toBe(500);
         expect(body).toHaveProperty("message");
+      });
+    });
+  });
+
+  //! UPDATE USER
+  describe("PUT /users/:id", () => {
+    let userToken;
+    let testUserId;
+    let anotherUserToken;
+    let anotherUserId;
+
+    beforeEach(async () => {
+      // Create a test user and get their token
+      const testUser = await User.create({
+        username: "updatetestuser",
+        email: "updatetest@example.com",
+        password: "password123",
+      });
+      testUserId = testUser.id;
+      userToken = signToken({ id: testUserId });
+
+      // Create another user for authorization tests
+      const anotherUser = await User.create({
+        username: "anotheruser",
+        email: "another@example.com",
+        password: "password123",
+      });
+      anotherUserId = anotherUser.id;
+      anotherUserToken = signToken({ id: anotherUserId });
+
+      // Add genres to test user
+      await testUser.addGenres([1, 2]);
+    });
+
+    afterEach(async () => {
+      // Clean up created users
+      await User.destroy({
+        where: {
+          id: [testUserId, anotherUserId],
+        },
+      });
+    });
+
+    describe("Success", () => {
+      test("Berhasil update username (200)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            username: "updatedusername",
+          });
+
+        expect(status).toBe(200);
+        expect(body).toHaveProperty("message", "User updated successfully");
+        expect(body).toHaveProperty("user");
+        expect(body.user).toHaveProperty("username", "updatedusername");
+      });
+
+      test("Berhasil update genres (200)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: [3, 4, 5],
+          });
+
+        expect(status).toBe(200);
+        expect(body).toHaveProperty("message", "User updated successfully");
+        expect(body).toHaveProperty("user");
+        expect(body.user).toHaveProperty("Genres");
+        expect(body.user.Genres).toHaveLength(3);
+        expect(body.user.Genres.map((g) => g.id)).toEqual(
+          expect.arrayContaining([3, 4, 5])
+        );
+      });
+
+      test("Berhasil update username dan genres sekaligus (200)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            username: "newusername",
+            genres: [1, 3],
+          });
+
+        expect(status).toBe(200);
+        expect(body).toHaveProperty("message", "User updated successfully");
+        expect(body.user).toHaveProperty("username", "newusername");
+        expect(body.user.Genres).toHaveLength(2);
+      });
+
+      test("Berhasil update dengan 1 genre (200)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: [1],
+          });
+
+        expect(status).toBe(200);
+        expect(body.user.Genres).toHaveLength(1);
+        expect(body.user.Genres[0]).toHaveProperty("id", 1);
+      });
+    });
+
+    describe("Failed", () => {
+      test("Gagal update tanpa token (401)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .send({
+            username: "newusername",
+          });
+
+        expect(status).toBe(401);
+        expect(body).toHaveProperty("message", "Invalid token");
+      });
+
+      test("Gagal update dengan token invalid (401)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", "Bearer invalid-token")
+          .send({
+            username: "newusername",
+          });
+
+        expect(status).toBe(401);
+        expect(body).toHaveProperty("message", "Invalid token");
+      });
+
+      test("Gagal update dengan user ID yang tidak ada (404)", async () => {
+        const { status, body } = await request(app)
+          .put("/users/999999")
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            username: "newusername",
+          });
+
+        expect(status).toBe(404);
+        expect(body).toHaveProperty("message", "User not found");
+      });
+
+      test("Gagal update dengan username yang sudah ada (400)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            username: "anotheruser", // Username already exists
+          });
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty("message", "Username is already taken");
+      });
+
+      test("Gagal update dengan genres bukan array (400)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: "not-an-array",
+          });
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty("message", "Genres must be an array");
+      });
+
+      test("Gagal update dengan genres array kosong (400)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: [],
+          });
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "At least 1 genre must be selected"
+        );
+      });
+
+      test("Gagal update dengan lebih dari 3 genres (400)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: [1, 2, 3, 4],
+          });
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "You can only select up to 3 genres"
+        );
+      });
+
+      test("Gagal update dengan genre ID invalid (400)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: [999, 1000],
+          });
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "Genre IDs must be numbers between 1 and 18"
+        );
+      });
+
+      test("Gagal update dengan genre ID bukan number (400)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: ["1", "2", "3"],
+          });
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "Genre IDs must be numbers between 1 and 18"
+        );
+      });
+
+      test("Gagal update dengan genre ID di luar range (400)", async () => {
+        const { status, body } = await request(app)
+          .put(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`)
+          .send({
+            genres: [0, 19],
+          });
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty(
+          "message",
+          "Genre IDs must be numbers between 1 and 18"
+        );
+      });
+    });
+  });
+
+  //! GET USER BY ID
+  describe("GET /users/:id", () => {
+    let userToken;
+    let testUserId;
+    let anotherUserToken;
+    let anotherUserId;
+
+    beforeEach(async () => {
+      // Create a test user and get their token
+      const testUser = await User.create({
+        username: "gettestuser",
+        email: "gettest@example.com",
+        password: "password123",
+      });
+      testUserId = testUser.id;
+      userToken = signToken({ id: testUserId });
+
+      // Create another user for testing different access levels
+      const anotherUser = await User.create({
+        username: "anothergetuser",
+        email: "anotherget@example.com",
+        password: "password123",
+      });
+      anotherUserId = anotherUser.id;
+      anotherUserToken = signToken({ id: anotherUserId });
+
+      // Add genres to test user
+      await testUser.addGenres([1, 2, 3]);
+    });
+
+    afterEach(async () => {
+      // Clean up created users
+      await User.destroy({
+        where: {
+          id: [testUserId, anotherUserId],
+        },
+      });
+    });
+
+    describe("Success", () => {
+      test("Berhasil get user profile sendiri (200)", async () => {
+        const { status, body } = await request(app)
+          .get(`/users/${testUserId}`)
+          .set("Authorization", `Bearer ${userToken}`);
+
+        expect(status).toBe(200);
+        expect(body).toHaveProperty("id", testUserId);
+        expect(body).toHaveProperty("username", "gettestuser");
+        expect(body).toHaveProperty("email", "gettest@example.com"); // Own profile shows email
+        expect(body).toHaveProperty("createdAt");
+        expect(body).toHaveProperty("updatedAt");
+        expect(body).toHaveProperty("genres");
+        expect(body.genres).toHaveLength(3);
+      });
+
+      test("Berhasil get user profile orang lain (200)", async () => {
+        const { status, body } = await request(app)
+          .get(`/users/${anotherUserId}`)
+          .set("Authorization", `Bearer ${userToken}`);
+
+        expect(status).toBe(200);
+        expect(body).toHaveProperty("id", anotherUserId);
+        expect(body).toHaveProperty("username", "anothergetuser");
+        expect(body).not.toHaveProperty("email"); // Other's profile doesn't show email
+        expect(body).toHaveProperty("createdAt");
+        expect(body).toHaveProperty("updatedAt");
+        expect(body).toHaveProperty("genres");
+      });
+    });
+
+    describe("Failed", () => {
+      test("Gagal get user tanpa token (401)", async () => {
+        const { status, body } = await request(app).get(`/users/${testUserId}`);
+
+        expect(status).toBe(401);
+        expect(body).toHaveProperty("message", "Invalid token");
+      });
+
+      test("Gagal get user dengan token invalid (401)", async () => {
+        const { status, body } = await request(app)
+          .get(`/users/${testUserId}`)
+          .set("Authorization", "Bearer invalid-token");
+
+        expect(status).toBe(401);
+        expect(body).toHaveProperty("message", "Invalid token");
+      });
+
+      test("Gagal get user dengan ID yang tidak ada (404)", async () => {
+        const { status, body } = await request(app)
+          .get("/users/999999")
+          .set("Authorization", `Bearer ${userToken}`);
+
+        expect(status).toBe(404);
+        expect(body).toHaveProperty("message", "User not found");
+      });
+
+      test("Gagal get user dengan ID invalid (400)", async () => {
+        const { status, body } = await request(app)
+          .get("/users/invalid-id")
+          .set("Authorization", `Bearer ${userToken}`);
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty("message", "Invalid user ID");
+      });
+
+      test("Gagal get user dengan ID kosong (400)", async () => {
+        const { status, body } = await request(app)
+          .get("/users/")
+          .set("Authorization", `Bearer ${userToken}`);
+
+        // This might return 404 for route not found instead of 400
+        expect([400, 404]).toContain(status);
+      });
+
+      test("Gagal get user dengan ID null (400)", async () => {
+        const { status, body } = await request(app)
+          .get("/users/null")
+          .set("Authorization", `Bearer ${userToken}`);
+
+        expect(status).toBe(400);
+        expect(body).toHaveProperty("message", "Invalid user ID");
       });
     });
   });
